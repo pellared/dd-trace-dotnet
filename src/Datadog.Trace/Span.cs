@@ -139,7 +139,8 @@ namespace Datadog.Trace
             switch (key)
             {
                 case Trace.Tags.SamplingPriority:
-                    if (Enum.TryParse(value, out SamplingPriority samplingPriority) &&
+                    if (Context.TraceContext != null &&
+                        Enum.TryParse(value, out SamplingPriority samplingPriority) &&
                         Enum.IsDefined(typeof(SamplingPriority), samplingPriority))
                     {
                         // allow setting the sampling priority via a tag
@@ -150,7 +151,8 @@ namespace Datadog.Trace
 #pragma warning disable CS0618 // Type or member is obsolete
                 case Trace.Tags.ForceKeep:
                 case Trace.Tags.ManualKeep:
-                    if (value?.ToBoolean() == true)
+                    if (Context.TraceContext != null &&
+                        value?.ToBoolean() == true)
                     {
                         // user-friendly tag to set UserKeep priority
                         Context.TraceContext.SamplingPriority = SamplingPriority.UserKeep;
@@ -159,7 +161,8 @@ namespace Datadog.Trace
                     break;
                 case Trace.Tags.ForceDrop:
                 case Trace.Tags.ManualDrop:
-                    if (value?.ToBoolean() == true)
+                    if (Context.TraceContext != null &&
+                        value?.ToBoolean() == true)
                     {
                         // user-friendly tag to set UserReject priority
                         Context.TraceContext.SamplingPriority = SamplingPriority.UserReject;
@@ -362,7 +365,7 @@ namespace Datadog.Trace
 
         internal void ResetStartTime()
         {
-            StartTime = Context.TraceContext.UtcNow;
+            StartTime = Context.TraceContext?.UtcNow ?? DateTimeOffset.UtcNow;
         }
     }
 }
