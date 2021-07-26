@@ -16,7 +16,7 @@ using Xunit.Sdk;
 namespace Datadog.Trace.Tests
 {
     [Collection(nameof(TracerInstanceTestCollection))]
-    [TracerRestorer]
+    [TracerInstanceTestCollection.TracerRestorer]
     public class CorrelationIdentifierTests
     {
         [Fact]
@@ -106,24 +106,6 @@ namespace Datadog.Trace.Tests
             }
 
             Assert.Equal(CorrelationIdentifier.Service, Tracer.Instance.DefaultServiceName);
-        }
-
-        [AttributeUsage(AttributeTargets.Class, Inherited = true)]
-        private class TracerRestorerAttribute : BeforeAfterTestAttribute
-        {
-            private Tracer _tracer;
-
-            public override void Before(MethodInfo methodUnderTest)
-            {
-                _tracer = Tracer.Instance;
-                base.Before(methodUnderTest);
-            }
-
-            public override void After(MethodInfo methodUnderTest)
-            {
-                Tracer.Instance = _tracer;
-                base.After(methodUnderTest);
-            }
         }
     }
 }
