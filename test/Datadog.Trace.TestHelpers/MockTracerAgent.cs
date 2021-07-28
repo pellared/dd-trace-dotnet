@@ -15,6 +15,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Datadog.Trace.ExtensionMethods;
 using MessagePack;
 
@@ -24,7 +25,7 @@ namespace Datadog.Trace.TestHelpers
     {
         private readonly HttpListener _listener;
         private readonly UdpClient _udpClient;
-        private readonly Thread _listenerThread;
+        private readonly Task _listenerTask;
         private readonly Thread _statsdThread;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
@@ -76,8 +77,7 @@ namespace Datadog.Trace.TestHelpers
                     Port = port;
                     _listener = listener;
 
-                    _listenerThread = new Thread(HandleHttpRequests);
-                    _listenerThread.Start();
+                    _listenerTask = Task.Run(HandleHttpRequests);
 
                     return;
                 }
@@ -196,6 +196,7 @@ namespace Datadog.Trace.TestHelpers
             _listener?.Stop();
             _cancellationTokenSource.Cancel();
             _udpClient?.Close();
+            _listenerTask.Wait();
         }
 
         protected virtual void OnRequestReceived(HttpListenerContext context)
@@ -247,13 +248,13 @@ namespace Datadog.Trace.TestHelpers
             }
         }
 
-        private void HandleHttpRequests()
+        private async Task HandleHttpRequests()
         {
             while (_listener.IsListening)
             {
                 try
                 {
-                    var ctx = _listener.GetContext();
+                    var ctx = await _listener.GetContextAsync();
                     OnRequestReceived(ctx);
                     var shouldDeserializeTraces = ShouldDeserializeTraces && !IsAppSecTrace(ctx);
                     if (shouldDeserializeTraces)
