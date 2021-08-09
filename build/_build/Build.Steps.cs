@@ -610,6 +610,7 @@ partial class Build
                     .SetDDEnvironmentVariables("dd-tracer-dotnet")
                     .EnableMemoryDumps()
                     .When(CodeCoverage, ConfigureCodeCoverage)
+                    .When(!string.IsNullOrEmpty(Filter), c => c.SetFilter(Filter))
                     .CombineWith(testProjects, (x, project) => x
                         .EnableTrxLogOutput(GetResultsDirectory(project))
                         .SetProjectFile(project)));
