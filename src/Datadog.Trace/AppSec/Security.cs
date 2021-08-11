@@ -65,6 +65,8 @@ namespace Datadog.Trace.AppSec
 
                     RegisterShutdownTasks();
                 }
+
+                Telemetry.Telemetry.Instance.RecordSecuritySettings(_settings);
             }
             catch (Exception ex)
             {

@@ -186,6 +186,8 @@ namespace Datadog.Trace
                     _runtimeMetricsWriter = new RuntimeMetricsWriter(Statsd ?? CreateDogStatsdClient(Settings, DefaultServiceName, Settings.DogStatsdPort), TimeSpan.FromSeconds(10));
                 }
             }
+
+            Telemetry.Telemetry.Instance.RecordTracerSettings(Settings, DefaultServiceName, AzureAppServices.Metadata);
         }
 
         /// <summary>
