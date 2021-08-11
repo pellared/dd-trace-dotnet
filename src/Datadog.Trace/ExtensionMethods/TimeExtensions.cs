@@ -19,6 +19,11 @@ namespace Datadog.Trace.ExtensionMethods
             return (dateTimeOffset.Ticks - TimeConstants.UnixEpochInTicks) * TimeConstants.NanoSecondsPerTick;
         }
 
+#if NET45
+        public static long ToUnixTimeSeconds(this DateTimeOffset dateTimeOffset)
+            => (dateTimeOffset.Ticks - TimeConstants.UnixEpochInTicks) / TimeSpan.TicksPerSecond;
+#endif
+
         public static long ToNanoseconds(this TimeSpan ts)
         {
             return ts.Ticks * TimeConstants.NanoSecondsPerTick;
