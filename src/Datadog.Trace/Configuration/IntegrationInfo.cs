@@ -7,6 +7,9 @@ using System;
 
 namespace Datadog.Trace.Configuration
 {
+    /// <summary>
+    /// Effectively an Either&lt;string, int&gt;
+    /// </summary>
     internal readonly struct IntegrationInfo
     {
         public readonly string Name;
