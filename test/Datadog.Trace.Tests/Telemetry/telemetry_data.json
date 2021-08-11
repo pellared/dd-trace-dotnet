@@ -1,0 +1,45 @@
+﻿{
+  "runtime_id": "20338dfd-f700-4e5c-b3f6-0d470f054ae8",
+  "seq_id": 5672,
+  "service_name": "myapp",
+  "env": "prod",
+  "started_at": 1620312565,
+  "tracer_version": "0.33.1",
+  "language_name": "node.js",
+  "service_version": "1.2.3",
+  "language_version": "14.16.1",
+  "integrations": [
+    {
+      "name": "express",
+      "enabled": true,
+      "auto_enabled": true
+    },
+    {
+      "name": "pg",
+      "compatible": "false",
+      "enabled": false,
+      "auto_enabled": false
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "pg",
+      "version": "8.6.0"
+    },
+    {
+      "name": "express",
+      "version": "4.17.1"
+    },
+    {
+      "name": "body-parser",
+      "version": "1.19.0"
+    }
+  ],
+  "configuration": {
+    "os_version": "10",
+    "os_name": "Windows"
+  },
+  "additional_payload": {
+    "to_be": "determined"
+  }
+}

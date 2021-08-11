@@ -69,6 +69,16 @@ namespace Datadog.Trace.ClrProfiler
             try
             {
                 // ensure global instance is created if it's not already
+                _ = Telemetry.Telemetry.Instance;
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                // ensure global instance is created if it's not already
                 _ = Tracer.Instance;
             }
             catch

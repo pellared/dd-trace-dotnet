@@ -234,6 +234,17 @@ namespace Datadog.Trace.Configuration
         public const string TracerMetricsEnabled = "DD_TRACE_METRICS_ENABLED";
 
         /// <summary>
+        /// Configuration key for enabling or disabling internal telemetry.
+        /// Default value is <c>true</c> (enabled).
+        /// </summary>
+        public const string TelemetryEnabled = "DD_TRACE_TELEMETRY_ENABLED";
+
+        /// <summary>
+        /// Configuration key for the telemetry URL where the Tracer sends telemetry.
+        /// </summary>
+        public const string TelemetryUri = "DD_TRACE_TELEMETRY_URL";
+
+        /// <summary>
         /// Configuration key for enabling or disabling runtime metrics sent to DogStatsD.
         /// Default value is <c>false</c> (disabled).
         /// </summary>
