@@ -6,6 +6,7 @@
 using System;
 using System.Data;
 using Datadog.Trace.ClrProfiler.Integrations.AdoNet;
+using Datadog.Trace.Configuration;
 using Datadog.Trace.ExtensionMethods;
 using Datadog.Trace.Logging;
 
@@ -82,6 +83,8 @@ namespace Datadog.Trace.ClrProfiler
                 tags.DbType = _dbTypeName;
 
                 tags.SetAnalyticsSampleRate(AdoNetConstants.IntegrationId, tracer.Settings, enabledWithGlobalSetting: false);
+
+                Telemetry.Telemetry.Instance.IntegrationGeneratedSpan(new IntegrationInfo(_fullName));
             }
             catch (Exception ex)
             {

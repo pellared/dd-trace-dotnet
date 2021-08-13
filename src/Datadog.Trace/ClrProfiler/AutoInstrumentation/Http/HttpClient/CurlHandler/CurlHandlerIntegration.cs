@@ -31,6 +31,7 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.Http.HttpClient.CurlHand
         private static readonly IntegrationInfo IntegrationId = IntegrationRegistry.GetIntegrationInfo(IntegrationName);
         private static readonly IntegrationInfo CurlHandlerIntegrationId = IntegrationRegistry.GetIntegrationInfo(nameof(IntegrationIds.CurlHandler));
         private static readonly Func<bool> IsIntegrationEnabledFunc = () => Tracer.Instance.Settings.IsIntegrationEnabled(CurlHandlerIntegrationId, defaultValue: true);
+        private static readonly Action RecordTelemetry = () => { Telemetry.Telemetry.Instance.IntegrationGeneratedSpan(CurlHandlerIntegrationId); };
 
         /// <summary>
         /// OnMethodBegin callback
@@ -44,7 +45,7 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.Http.HttpClient.CurlHand
         public static CallTargetState OnMethodBegin<TTarget, TRequest>(TTarget instance, TRequest requestMessage, CancellationToken cancellationToken)
             where TRequest : IHttpRequestMessage
         {
-            return HttpMessageHandlerCommon.OnMethodBegin(instance, requestMessage, cancellationToken, IntegrationId, IsIntegrationEnabledFunc);
+            return HttpMessageHandlerCommon.OnMethodBegin(instance, requestMessage, cancellationToken, IntegrationId, IsIntegrationEnabledFunc, RecordTelemetry);
         }
 
         /// <summary>

@@ -251,6 +251,8 @@ namespace Datadog.Trace.ClrProfiler.Integrations
                 UpdateSpan(controllerContext, scope.Span, tags, tagsFromHeaders);
 
                 tags.SetAnalyticsSampleRate(IntegrationId, tracer.Settings, enabledWithGlobalSetting: true);
+
+                Telemetry.Telemetry.Instance.IntegrationGeneratedSpan(IntegrationId);
             }
             catch (Exception ex)
             {

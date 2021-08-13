@@ -52,6 +52,8 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.Http.WebRequest
                         // add distributed tracing headers to the HTTP request
                         SpanContextPropagator.Instance.Inject(scope.Span.Context, request.Headers.Wrap());
 
+                        Telemetry.Telemetry.Instance.IntegrationGeneratedSpan(IntegrationId);
+
                         return new CallTargetState(scope);
                     }
                 }

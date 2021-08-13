@@ -143,6 +143,8 @@ namespace Datadog.Trace.AspNet
                 {
                     RaiseInstrumentationEvent(security, httpContext, httpRequest, scope.Span);
                 }
+
+                Telemetry.Telemetry.Instance.IntegrationGeneratedSpan(IntegrationId);
             }
             catch (Exception ex)
             {

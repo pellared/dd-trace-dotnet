@@ -31,6 +31,7 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.Http.HttpClient.WinHttpH
         private static readonly IntegrationInfo IntegrationId = IntegrationRegistry.GetIntegrationInfo(IntegrationName);
         private static readonly IntegrationInfo WinHttpHandlerIntegrationId = IntegrationRegistry.GetIntegrationInfo(nameof(IntegrationIds.WinHttpHandler));
         private static readonly Func<bool> IsIntegrationEnabledFunc = () => Tracer.Instance.Settings.IsIntegrationEnabled(WinHttpHandlerIntegrationId, defaultValue: true);
+        private static readonly Action RecordTelemetry = () => { Telemetry.Telemetry.Instance.IntegrationGeneratedSpan(WinHttpHandlerIntegrationId); };
 
         /// <summary>
         /// OnMethodBegin callback
@@ -44,7 +45,7 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.Http.HttpClient.WinHttpH
         public static CallTargetState OnMethodBegin<TTarget, TRequest>(TTarget instance, TRequest requestMessage, CancellationToken cancellationToken)
             where TRequest : IHttpRequestMessage
         {
-            return HttpMessageHandlerCommon.OnMethodBegin(instance, requestMessage, cancellationToken, IntegrationId, IsIntegrationEnabledFunc);
+            return HttpMessageHandlerCommon.OnMethodBegin(instance, requestMessage, cancellationToken, IntegrationId, IsIntegrationEnabledFunc, RecordTelemetry);
         }
 
         /// <summary>

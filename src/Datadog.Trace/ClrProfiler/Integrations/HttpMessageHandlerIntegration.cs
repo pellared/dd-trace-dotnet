@@ -447,6 +447,8 @@ namespace Datadog.Trace.ClrProfiler.Integrations
                         scope.Span.SetHttpStatusCode(statusCode, isServer: false);
                     }
 
+                    Telemetry.Telemetry.Instance.IntegrationGeneratedSpan(IntegrationId);
+
                     return response;
                 }
                 catch (Exception ex)
@@ -489,6 +491,8 @@ namespace Datadog.Trace.ClrProfiler.Integrations
                     {
                         scope.Span.SetHttpStatusCode(statusCode, isServer: false);
                     }
+
+                    Telemetry.Telemetry.Instance.IntegrationGeneratedSpan(IntegrationId);
 
                     return response;
                 }

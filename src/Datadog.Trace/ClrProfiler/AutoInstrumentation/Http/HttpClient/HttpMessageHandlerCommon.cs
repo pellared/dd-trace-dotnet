@@ -15,7 +15,14 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.Http.HttpClient
 {
     internal static class HttpMessageHandlerCommon
     {
+        [Obsolete("This method is deprecated and will be removed. Use a different overload instead")]
         public static CallTargetState OnMethodBegin<TTarget, TRequest>(TTarget instance, TRequest requestMessage, CancellationToken cancellationToken, IntegrationInfo integrationId, Func<bool> isTracingEnableFunc = null)
+            where TRequest : IHttpRequestMessage
+        {
+            return OnMethodBegin(instance, requestMessage, cancellationToken, integrationId, isTracingEnableFunc, recordTelemetry: null);
+        }
+
+        public static CallTargetState OnMethodBegin<TTarget, TRequest>(TTarget instance, TRequest requestMessage, CancellationToken cancellationToken, IntegrationInfo integrationId, Func<bool> isTracingEnableFunc = null, Action recordTelemetry = null)
             where TRequest : IHttpRequestMessage
         {
             if (requestMessage.Instance is not null && IsTracingEnabled(requestMessage.Headers, isTracingEnableFunc))
@@ -27,6 +34,8 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.Http.HttpClient
 
                     // add distributed tracing headers to the HTTP request
                     SpanContextPropagator.Instance.Inject(scope.Span.Context, new HttpHeadersCollection(requestMessage.Headers));
+
+                    recordTelemetry?.Invoke();
 
                     return new CallTargetState(scope);
                 }
