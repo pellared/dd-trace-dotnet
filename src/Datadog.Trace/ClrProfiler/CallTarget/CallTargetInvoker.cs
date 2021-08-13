@@ -31,6 +31,7 @@ namespace Datadog.Trace.ClrProfiler.CallTarget
         {
             if (IntegrationOptions<TIntegration, TTarget>.IsIntegrationEnabled)
             {
+                IntegrationOptions<TIntegration, TTarget>.RecordTelemetry();
                 return BeginMethodHandler<TIntegration, TTarget>.Invoke(instance);
             }
 
@@ -51,6 +52,7 @@ namespace Datadog.Trace.ClrProfiler.CallTarget
         {
             if (IntegrationOptions<TIntegration, TTarget>.IsIntegrationEnabled)
             {
+                IntegrationOptions<TIntegration, TTarget>.RecordTelemetry();
                 return BeginMethodHandler<TIntegration, TTarget, TArg1>.Invoke(instance, arg1);
             }
 
@@ -73,6 +75,7 @@ namespace Datadog.Trace.ClrProfiler.CallTarget
         {
             if (IntegrationOptions<TIntegration, TTarget>.IsIntegrationEnabled)
             {
+                IntegrationOptions<TIntegration, TTarget>.RecordTelemetry();
                 return BeginMethodHandler<TIntegration, TTarget, TArg1, TArg2>.Invoke(instance, arg1, arg2);
             }
 
@@ -97,6 +100,7 @@ namespace Datadog.Trace.ClrProfiler.CallTarget
         {
             if (IntegrationOptions<TIntegration, TTarget>.IsIntegrationEnabled)
             {
+                IntegrationOptions<TIntegration, TTarget>.RecordTelemetry();
                 return BeginMethodHandler<TIntegration, TTarget, TArg1, TArg2, TArg3>.Invoke(instance, arg1, arg2, arg3);
             }
 
@@ -123,6 +127,7 @@ namespace Datadog.Trace.ClrProfiler.CallTarget
         {
             if (IntegrationOptions<TIntegration, TTarget>.IsIntegrationEnabled)
             {
+                IntegrationOptions<TIntegration, TTarget>.RecordTelemetry();
                 return BeginMethodHandler<TIntegration, TTarget, TArg1, TArg2, TArg3, TArg4>.Invoke(instance, arg1, arg2, arg3, arg4);
             }
 
@@ -151,6 +156,7 @@ namespace Datadog.Trace.ClrProfiler.CallTarget
         {
             if (IntegrationOptions<TIntegration, TTarget>.IsIntegrationEnabled)
             {
+                IntegrationOptions<TIntegration, TTarget>.RecordTelemetry();
                 return BeginMethodHandler<TIntegration, TTarget, TArg1, TArg2, TArg3, TArg4, TArg5>.Invoke(instance, arg1, arg2, arg3, arg4, arg5);
             }
 
@@ -181,6 +187,7 @@ namespace Datadog.Trace.ClrProfiler.CallTarget
         {
             if (IntegrationOptions<TIntegration, TTarget>.IsIntegrationEnabled)
             {
+                IntegrationOptions<TIntegration, TTarget>.RecordTelemetry();
                 return BeginMethodHandler<TIntegration, TTarget, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6>.Invoke(instance, arg1, arg2, arg3, arg4, arg5, arg6);
             }
 
@@ -213,6 +220,7 @@ namespace Datadog.Trace.ClrProfiler.CallTarget
         {
             if (IntegrationOptions<TIntegration, TTarget>.IsIntegrationEnabled)
             {
+                IntegrationOptions<TIntegration, TTarget>.RecordTelemetry();
                 return BeginMethodHandler<TIntegration, TTarget, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7>.Invoke(instance, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
             }
 
@@ -247,6 +255,7 @@ namespace Datadog.Trace.ClrProfiler.CallTarget
         {
             if (IntegrationOptions<TIntegration, TTarget>.IsIntegrationEnabled)
             {
+                IntegrationOptions<TIntegration, TTarget>.RecordTelemetry();
                 return BeginMethodHandler<TIntegration, TTarget, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8>.Invoke(instance, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
             }
 
@@ -266,6 +275,7 @@ namespace Datadog.Trace.ClrProfiler.CallTarget
         {
             if (IntegrationOptions<TIntegration, TTarget>.IsIntegrationEnabled)
             {
+                IntegrationOptions<TIntegration, TTarget>.RecordTelemetry();
                 return BeginMethodSlowHandler<TIntegration, TTarget>.Invoke(instance, arguments);
             }
 
