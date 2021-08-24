@@ -22,6 +22,7 @@ namespace Datadog.Trace.Telemetry
         private readonly TelemetryDataBuilder _dataBuilder = new();
         private readonly ITelemetryTransport _transport;
         private readonly TimeSpan _sendFrequency;
+        private readonly TaskCompletionSource<bool> _tracerInitialized = new();
         private readonly TaskCompletionSource<bool> _processExit = new();
         private readonly Task _telemetryTask;
 
@@ -53,6 +54,7 @@ namespace Datadog.Trace.Telemetry
         {
             _configuration.RecordTracerSettings(settings, defaultServiceName, appServicesMetadata);
             _integrations.RecordTracerSettings(settings);
+            _tracerInitialized.TrySetResult(true);
         }
 
         public void RecordSecuritySettings(SecuritySettings settings)
@@ -70,6 +72,7 @@ namespace Datadog.Trace.Telemetry
         public void Dispose()
         {
             _processExit.TrySetResult(true);
+            _tracerInitialized.TrySetResult(true);
             AppDomain.CurrentDomain.AssemblyLoad -= CurrentDomain_OnAssemblyLoad;
             _telemetryTask.GetAwaiter().GetResult();
         }
@@ -95,10 +98,17 @@ namespace Datadog.Trace.Telemetry
         {
 #if !NET5_0_OR_GREATER
             var tasks = new Task[2];
-            tasks[0] = _processExit.Task;
+            tasks[0] = _tracerInitialized.Task;
 #endif
             while (true)
             {
+#if !NET5_0_OR_GREATER
+                if (_tracerInitialized.Task.IsCompleted)
+                {
+                    tasks[0] = _processExit.Task;
+                }
+#endif
+
                 if (_processExit.Task.IsCompleted)
                 {
                     Log.Debug("Process exit requested, ending telemetry loop");
@@ -112,7 +122,9 @@ namespace Datadog.Trace.Telemetry
                 // .NET 5.0 has an explicit overload for this
                 await Task.WhenAny(
                                Task.Delay(_bucketDuration),
-                               _processExit.Task)
+                               _tracerInitialized.Task.IsCompleted
+                                    ? _processExit.Task
+                                    : _tracerInitialized.Task)
                           .ConfigureAwait(false);
 #else
                 tasks[1] = Task.Delay(_sendFrequency);
