@@ -54,7 +54,9 @@ namespace Datadog.Trace.Telemetry
                 try
                 {
                     var controller = new TelemetryController(
-                        new TelemetryCollector(),
+                        new ConfigurationTelemetryCollector(),
+                        new DependencyTelemetryCollector(),
+                        new IntegrationTelemetryCollector(),
                         new TelemetryTransportFactory(settings.TelemetryUrl).Create(),
                         TelemetryConstants.RefreshInterval);
 

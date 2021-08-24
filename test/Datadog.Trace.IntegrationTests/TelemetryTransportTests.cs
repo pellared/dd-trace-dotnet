@@ -24,23 +24,27 @@ namespace Datadog.Trace.IntegrationTests
             var telemetryUri = new Uri($"http://localhost:{agent.Port}");
 
             var transport = new TelemetryTransportFactory(telemetryUri).Create();
+            // Not a valid request, but transport shouldn't care
             var sentData = new TelemetryData()
             {
-                SeqId = 3,
-                Env = "TracerTelemetryTest",
-                ServiceName = "TelemetryTransportTests"
+                SeqId = 23,
+                Application = new ApplicationTelemetryData()
+                {
+                    Env = "TracerTelemetryTest",
+                    ServiceName = "TelemetryTransportTests",
+                },
             };
 
             await transport.PushTelemetry(sentData);
 
-            var received = agent.WaitForLatestTelemetry(x => x.Configuration?.TracerInstanceCount > 0);
+            var received = agent.WaitForLatestTelemetry(x => x.SeqId == sentData.SeqId);
 
             received.Should().NotBeNull();
 
             // check some basic values
             received.SeqId.Should().Be(sentData.SeqId);
-            received.Env.Should().Be(sentData.Env);
-            received.ServiceName.Should().Be(sentData.ServiceName);
+            received.Application.Env.Should().Be(sentData.Application.Env);
+            received.Application.ServiceName.Should().Be(sentData.Application.ServiceName);
         }
     }
 }

@@ -53,12 +53,26 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 var spans = agent.WaitForSpans(expectedSpanCount, operationName: expectedOperationName);
                 Assert.Equal(expectedSpanCount, spans.Count);
 
-                var latestData = telemetry.WaitForLatestTelemetry(_ => true);
+                telemetry.WaitForLatestTelemetry(_ => true);
+
+                var allData = telemetry.Telemetry.ToArray();
+                var latestData = allData
+                                .Where(x => x.RequestType == TelemetryRequestTypes.AppStarted
+                                         || x.RequestType == TelemetryRequestTypes.AppIntegrationsChanged)
+                                .OrderByDescending(x => x.SeqId)
+                                .FirstOrDefault();
 
                 latestData.Should().NotBeNull();
-                latestData.ServiceVersion.Should().Be(serviceVersion);
-                latestData.ServiceName.Should().Be("Samples.Telemetry");
-                var httpHandler = latestData.Integrations.FirstOrDefault(x => x.Name == nameof(IntegrationIds.HttpMessageHandler));
+                latestData.Application.ServiceVersion.Should().Be(serviceVersion);
+                latestData.Application.ServiceName.Should().Be("Samples.Telemetry");
+
+                var integrationsPayload = latestData.Payload is AppStartedPayload payload
+                                              ? payload.Integrations
+                                              : ((AppIntegrationsChangedPayload)latestData.Payload).Integrations;
+
+                var httpHandler = integrationsPayload
+                   .FirstOrDefault(x => x.Name == nameof(IntegrationIds.HttpMessageHandler));
+
                 httpHandler.Enabled.Should().BeTrue();
                 httpHandler.AutoEnabled.Should().BeTrue();
             }

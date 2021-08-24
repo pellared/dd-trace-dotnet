@@ -15,19 +15,26 @@ namespace Datadog.Trace.Telemetry
 {
     internal class TelemetryController : ITelemetryController, IDisposable
     {
-        private static readonly IDatadogLogger Log = DatadogLogging.GetLoggerFor<TelemetryCollector>();
-        private readonly TelemetryCollector _collector;
+        private static readonly IDatadogLogger Log = DatadogLogging.GetLoggerFor<TelemetryController>();
+        private readonly ConfigurationTelemetryCollector _configuration;
+        private readonly DependencyTelemetryCollector _dependencies;
+        private readonly IntegrationTelemetryCollector _integrations;
+        private readonly TelemetryDataBuilder _dataBuilder = new();
         private readonly ITelemetryTransport _transport;
         private readonly TimeSpan _sendFrequency;
         private readonly TaskCompletionSource<bool> _processExit = new();
         private readonly Task _telemetryTask;
 
         internal TelemetryController(
-            TelemetryCollector collector,
+            ConfigurationTelemetryCollector configuration,
+            DependencyTelemetryCollector dependencies,
+            IntegrationTelemetryCollector integrations,
             ITelemetryTransport transport,
             TimeSpan sendFrequency)
         {
-            _collector = collector ?? throw new ArgumentNullException(nameof(collector));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _dependencies = dependencies ?? throw new ArgumentNullException(nameof(dependencies));
+            _integrations = integrations ?? throw new ArgumentNullException(nameof(integrations));
             _sendFrequency = sendFrequency;
             _transport = transport ?? throw new ArgumentNullException(nameof(transport));
 
@@ -43,19 +50,22 @@ namespace Datadog.Trace.Telemetry
         }
 
         public void RecordTracerSettings(TracerSettings settings, string defaultServiceName, AzureAppServices appServicesMetadata)
-            => _collector.RecordTracerSettings(settings, defaultServiceName, appServicesMetadata);
+        {
+            _configuration.RecordTracerSettings(settings, defaultServiceName, appServicesMetadata);
+            _integrations.RecordTracerSettings(settings);
+        }
 
         public void RecordSecuritySettings(SecuritySettings settings)
-            => _collector.RecordSecuritySettings(settings);
+            => _configuration.RecordSecuritySettings(settings);
 
         public void IntegrationRunning(IntegrationInfo info)
-            => _collector.IntegrationRunning(info);
+            => _integrations.IntegrationRunning(info);
 
         public void IntegrationGeneratedSpan(IntegrationInfo info)
-            => _collector.IntegrationGeneratedSpan(info);
+            => _integrations.IntegrationGeneratedSpan(info);
 
         public void IntegrationDisabledDueToError(IntegrationInfo info, string error)
-            => _collector.IntegrationDisabledDueToError(info, error);
+            => _integrations.IntegrationDisabledDueToError(info, error);
 
         public void Dispose()
         {
@@ -73,7 +83,7 @@ namespace Datadog.Trace.Telemetry
         {
             try
             {
-                _collector.AssemblyLoaded(assembly.GetName());
+                _dependencies.AssemblyLoaded(assembly.GetName());
             }
             catch (Exception ex)
             {
@@ -89,13 +99,14 @@ namespace Datadog.Trace.Telemetry
 #endif
             while (true)
             {
-                await PushTelemetry().ConfigureAwait(false);
-
                 if (_processExit.Task.IsCompleted)
                 {
                     Log.Debug("Process exit requested, ending telemetry loop");
+                    await PushAppClosingTelemetry().ConfigureAwait(false);
                     return;
                 }
+
+                await PushTelemetry().ConfigureAwait(false);
 
 #if NET5_0_OR_GREATER
                 // .NET 5.0 has an explicit overload for this
@@ -114,13 +125,44 @@ namespace Datadog.Trace.Telemetry
         {
             try
             {
-                if (!_collector.HasChanges())
+                var application = _configuration.GetApplicationData();
+                if (application is null)
                 {
-                    Log.Debug("No telemetry changes found, skipping");
+                    Log.Debug("Telemetry not initialized, skipping");
                     return;
                 }
 
-                var data = _collector.GetData();
+                // These calls change the state of the collectors, so must use the data
+                var configuration = _configuration.GetConfigurationData();
+                var dependencies = _dependencies.GetData();
+                var integrations = _integrations.GetData();
+
+                var data = _dataBuilder.BuildTelemetryData(application, configuration, dependencies, integrations);
+                if (data is null)
+                {
+                    Log.Debug("No telemetry data, skipping");
+                    return;
+                }
+
+                Log.Debug("Pushing telemetry changes");
+                foreach (var telemetryData in data)
+                {
+                    await _transport.PushTelemetry(telemetryData).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Error pushing telemetry");
+            }
+        }
+
+        private async Task PushAppClosingTelemetry()
+        {
+            try
+            {
+                var application = _configuration.GetApplicationData();
+                var data = _dataBuilder.BuildAppClosingTelemetryData(application);
+
                 if (data is null)
                 {
                     Log.Debug("No telemetry data found, skipping");
@@ -132,7 +174,7 @@ namespace Datadog.Trace.Telemetry
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Error pushing telemetry");
+                Log.Warning(ex, "Error sending app-closing telemetry");
             }
         }
     }

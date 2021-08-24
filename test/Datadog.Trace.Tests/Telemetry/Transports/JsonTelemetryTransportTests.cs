@@ -23,19 +23,58 @@ namespace Datadog.Trace.Tests.Telemetry
 
             var data = new TelemetryData
             {
+                RequestType = "app-started",
                 RuntimeId = "20338dfd-f700-4e5c-b3f6-0d470f054ae8",
                 SeqId = 5672,
-                ServiceName = "myapp",
-                Env = "prod",
-                ServiceVersion = "1.2.3",
-                StartedAt = 1620312565,
-                TracerVersion = "0.33.1",
-                LanguageName = "node.js",
-                LanguageVersion = "14.16.1",
-                Integrations = new List<TelemetryData.Integration> { new() { Name = "express", Enabled = true, AutoEnabled = true }, new() { Name = "pg", Enabled = false, AutoEnabled = false, Compatible = false } },
-                Dependencies = new List<TelemetryData.Dependency> { new() { Name = "pg", Version = "8.6.0" }, new() { Name = "express", Version = "4.17.1" }, new() { Name = "body-parser", Version = "1.19.0" }, },
-                Configuration = new TelemetryData.Config { OsVersion = "10", OsName = "Windows" },
-                AdditionalPayload = new Dictionary<string, object> { { "to_be", "determined" }, }
+                TracerTime = 1628099086,
+                Application = new ApplicationTelemetryData
+                {
+                    ServiceName = "myapp",
+                    Env = "prod",
+                    ServiceVersion = "1.2.3",
+                    TracerVersion = "0.33.1",
+                    LanguageName = "node.js",
+                    LanguageVersion = "14.16.1",
+                },
+                Payload = new AppStartedPayload
+                {
+                    Integrations = new List<IntegrationTelemetryData>
+                    {
+                        new()
+                        {
+                            Name = "express",
+                            Enabled = true,
+                            AutoEnabled = true
+                        },
+                        new()
+                        {
+                            Name = "pg",
+                            Enabled = false,
+                            AutoEnabled = false,
+                            Compatible = false
+                        }
+                    },
+                    Dependencies = new List<DependencyTelemetryData>
+                    {
+                        new()
+                        {
+                            Name = "pg",
+                            Version = "8.6.0"
+                        },
+                        new()
+                        {
+                            Name = "express",
+                            Version = "4.17.1"
+                        },
+                        new()
+                        {
+                            Name = "body-parser",
+                            Version = "1.19.0"
+                        },
+                    },
+                    Configuration = new ConfigTelemetryData { OsVersion = "10", OsName = "Windows" },
+                    AdditionalPayload = new Dictionary<string, object> { { "to_be", "determined" }, }
+                }
             };
 
             await transport.PushTelemetry(data);
