@@ -56,6 +56,8 @@ namespace Datadog.Trace.Configuration
         public const string ServiceNameMappings = "DD_TRACE_SERVICE_MAPPING";
         public const string ServiceVersion = "DD_VERSION";
         public const string StartupDiagnosticLogEnabled = "DD_TRACE_STARTUP_LOGS";
+        public const string TelemetryEnabled = "DD_TRACE_TELEMETRY_ENABLED";
+        public const string TelemetryUri = "DD_TRACE_TELEMETRY_URL";
         public const string TraceAgentArgs = "DD_TRACE_AGENT_ARGS";
         public const string TraceAgentPath = "DD_TRACE_AGENT_PATH";
         public const string TraceAgentPortKey = "DD_APM_RECEIVER_PORT";
