@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.IO;
@@ -13,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Datadog.Trace.Telemetry;
 using Datadog.Trace.Vendors.Newtonsoft.Json;
+using Datadog.Trace.Vendors.Newtonsoft.Json.Linq;
 
 namespace Datadog.Trace.TestHelpers
 {
@@ -20,7 +22,14 @@ namespace Datadog.Trace.TestHelpers
     {
         private readonly HttpListener _listener;
         private readonly Task _listenerTask;
-        private readonly JsonSerializer _serializer = JsonSerializer.Create(JsonTelemetryTransportBase.SerializerSettings);
+
+        // Needs to be kept in sync with JsonTelemetryTransportBase.SerializerSettings, but with the additional converter
+        private readonly JsonSerializer _serializer = JsonSerializer.Create(new JsonSerializerSettings
+        {
+            NullValueHandling = JsonTelemetryTransportBase.SerializerSettings.NullValueHandling,
+            ContractResolver = JsonTelemetryTransportBase.SerializerSettings.ContractResolver,
+            Converters = new List<JsonConverter> { new PayloadConverter() },
+        });
 
         public MockTelemetryAgent(int port = 8524, int retries = 5)
         {
@@ -91,8 +100,6 @@ namespace Datadog.Trace.TestHelpers
             int sleepTime = 200)
         {
             var deadline = DateTime.UtcNow.AddMilliseconds(timeoutInMilliseconds);
-
-            IImmutableList<Span> relevantSpans = ImmutableList<Span>.Empty;
 
             T latest = default;
             while (DateTime.UtcNow < deadline)
@@ -166,6 +173,36 @@ namespace Datadog.Trace.TestHelpers
                 {
                     // we don't care about any exception when listener is stopped
                 }
+            }
+        }
+
+        internal class PayloadConverter : JsonConverter
+        {
+            public override bool CanConvert(Type objectType)
+            {
+                return objectType == typeof(IPayload);
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                // use the default serialization - it works fine
+                serializer.Serialize(writer, value);
+            }
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                object payload = serializer.Deserialize<AppStartedPayload>(reader);
+
+                payload ??= serializer.Deserialize<AppDependenciesLoadedPayload>(reader);
+                payload ??= serializer.Deserialize<AppIntegrationsChangedPayload>(reader);
+                payload ??= serializer.Deserialize<GenerateMetricsPayload>(reader);
+
+                if (payload is null)
+                {
+                    throw new Exception("Unknown IPayload type");
+                }
+
+                return payload;
             }
         }
     }
