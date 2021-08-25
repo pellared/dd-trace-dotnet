@@ -21,7 +21,7 @@ namespace Datadog.Trace.TestHelpers
     public class MockTelemetryAgent<T> : IDisposable
     {
         private readonly HttpListener _listener;
-        private readonly Task _listenerTask;
+        private readonly Thread _listenerThread;
 
         // Needs to be kept in sync with JsonTelemetryTransportBase.SerializerSettings, but with the additional converter
         private readonly JsonSerializer _serializer = JsonSerializer.Create(new JsonSerializerSettings
@@ -50,7 +50,8 @@ namespace Datadog.Trace.TestHelpers
                     Port = port;
                     _listener = listener;
 
-                    _listenerTask = Task.Run(HandleHttpRequests);
+                    _listenerThread = new Thread(HandleHttpRequests);
+                    _listenerThread.Start();
 
                     return;
                 }
@@ -117,8 +118,7 @@ namespace Datadog.Trace.TestHelpers
 
         public void Dispose()
         {
-            _listener?.Stop();
-            _listenerTask.Wait();
+            _listener?.Abort();
         }
 
         protected virtual void OnRequestReceived(HttpListenerContext context)
@@ -126,13 +126,13 @@ namespace Datadog.Trace.TestHelpers
             RequestReceived?.Invoke(this, new EventArgs<HttpListenerContext>(context));
         }
 
-        private async Task HandleHttpRequests()
+        private void HandleHttpRequests()
         {
             while (_listener.IsListening)
             {
                 try
                 {
-                    var ctx = await _listener.GetContextAsync();
+                    var ctx = _listener.GetContext();
                     OnRequestReceived(ctx);
 
                     T telemetry;
