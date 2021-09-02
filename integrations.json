@@ -2625,6 +2625,37 @@
     ]
   },
   {
+    "name": "Nlog",
+    "method_replacements": [
+      {
+        "caller": {},
+        "target": {
+          "assembly": "NLog",
+          "type": "NLog.LoggerImpl",
+          "method": "Write",
+          "signature_types": [
+            "System.Void",
+            "System.Type",
+            "NLog.Internal.TargetWithFilterChain",
+            "NLog.LogEventInfo",
+            "NLog.LogFactory"
+          ],
+          "minimum_major": 2,
+          "minimum_minor": 0,
+          "minimum_patch": 0,
+          "maximum_major": 4,
+          "maximum_minor": 65535,
+          "maximum_patch": 65535
+        },
+        "wrapper": {
+          "assembly": "Datadog.Trace, Version=1.28.5.0, Culture=neutral, PublicKeyToken=def86d061d0d2eeb",
+          "type": "Datadog.Trace.ClrProfiler.AutoInstrumentation.Logging.NLog.LoggerImplInstrumentation",
+          "action": "CallTargetModification"
+        }
+      }
+    ]
+  },
+  {
     "name": "NpgsqlCommand",
     "method_replacements": [
       {

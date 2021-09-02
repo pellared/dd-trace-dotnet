@@ -37,5 +37,6 @@ namespace Datadog.Trace.Configuration
         ILogger,
         Aerospike,
         Serilog,
+        Nlog,
     }
 }
