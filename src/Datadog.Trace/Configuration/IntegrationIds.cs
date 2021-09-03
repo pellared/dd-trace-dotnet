@@ -38,5 +38,6 @@ namespace Datadog.Trace.Configuration
         Aerospike,
         Serilog,
         Nlog,
+        Log4Net,
     }
 }
