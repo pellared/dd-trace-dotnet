@@ -1473,7 +1473,32 @@
         },
         "wrapper": {
           "assembly": "Datadog.Trace, Version=1.28.6.0, Culture=neutral, PublicKeyToken=def86d061d0d2eeb",
-          "type": "Datadog.Trace.ClrProfiler.AutoInstrumentation.ILogger.LoggerExternalScopeProviderForEachScopeIntegration",
+          "type": "Datadog.Trace.ClrProfiler.AutoInstrumentation.Logging.ILogger.LoggerExternalScopeProviderForEachScopeIntegration",
+          "action": "CallTargetModification"
+        }
+      },
+      {
+        "caller": {},
+        "target": {
+          "assembly": "Microsoft.Extensions.Logging",
+          "type": "Microsoft.Extensions.Logging.LoggerFactory",
+          "method": ".ctor",
+          "signature_types": [
+            "System.Void",
+            "System.Collections.Generic.IEnumerable`1[Microsoft.Extensions.Logging.ILoggerProvider]",
+            "Microsoft.Extensions.Options.IOptionsMonitor`1[Microsoft.Extensions.Logging.LoggerFilterOptions]",
+            "Microsoft.Extensions.Options.IOptions`1[Microsoft.Extensions.Logging.LoggerFactoryOptions]"
+          ],
+          "minimum_major": 2,
+          "minimum_minor": 0,
+          "minimum_patch": 0,
+          "maximum_major": 5,
+          "maximum_minor": 65535,
+          "maximum_patch": 65535
+        },
+        "wrapper": {
+          "assembly": "Datadog.Trace, Version=1.28.6.0, Culture=neutral, PublicKeyToken=def86d061d0d2eeb",
+          "type": "Datadog.Trace.ClrProfiler.AutoInstrumentation.Logging.ILogger.LoggerFactoryConstructorIntegration",
           "action": "CallTargetModification"
         }
       },
@@ -1497,7 +1522,7 @@
         },
         "wrapper": {
           "assembly": "Datadog.Trace, Version=1.28.6.0, Culture=neutral, PublicKeyToken=def86d061d0d2eeb",
-          "type": "Datadog.Trace.ClrProfiler.AutoInstrumentation.ILogger.LoggerFactoryScopeProviderForEachScopeIntegration",
+          "type": "Datadog.Trace.ClrProfiler.AutoInstrumentation.Logging.ILogger.LoggerFactoryScopeProviderForEachScopeIntegration",
           "action": "CallTargetModification"
         }
       }
