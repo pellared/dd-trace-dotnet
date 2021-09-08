@@ -150,7 +150,7 @@ namespace Datadog.Trace.ClrProfiler.Integrations
                         }
                     }
 
-                    SpanContext propagatedContext = null;
+                    ISpanContext propagatedContext = null;
                     var tracer = Tracer.Instance;
                     var tagsFromHeaders = Enumerable.Empty<KeyValuePair<string, string>>();
 

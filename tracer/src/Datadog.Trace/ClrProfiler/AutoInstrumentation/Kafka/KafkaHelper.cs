@@ -97,7 +97,7 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.Kafka
                     return null;
                 }
 
-                SpanContext propagatedContext = null;
+                ISpanContext propagatedContext = null;
                 // Try to extract propagated context from headers
                 if (message is not null && message.Headers is not null)
                 {

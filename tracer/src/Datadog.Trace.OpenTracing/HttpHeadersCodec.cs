@@ -24,7 +24,7 @@ namespace Datadog.Trace.OpenTracing
             }
 
             IHeadersCollection headers = new TextMapHeadersCollection(map);
-            var propagationContext = SpanContextPropagator.Instance.Extract(headers);
+            ISpanContext propagationContext = SpanContextPropagator.Instance.Extract(headers);
             return new OpenTracingSpanContext(propagationContext);
         }
 

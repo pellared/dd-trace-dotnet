@@ -226,7 +226,7 @@ namespace Datadog.Trace.ClrProfiler.Integrations
 
                 var tracer = Tracer.Instance;
                 var request = controllerContext.Request;
-                SpanContext propagatedContext = null;
+                ISpanContext propagatedContext = null;
                 var tagsFromHeaders = Enumerable.Empty<KeyValuePair<string, string>>();
 
                 if (request != null && tracer.ActiveScope == null)
