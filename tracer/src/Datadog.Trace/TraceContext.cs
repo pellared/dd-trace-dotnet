@@ -66,7 +66,7 @@ namespace Datadog.Trace
 
                     if (_samplingPriority == null)
                     {
-                        if (span.Context.Parent is SpanContext context && context.SamplingPriority != null)
+                        if (span.Context.Parent is PropagatedSpanContext context && context.SamplingPriority != null)
                         {
                             // this is a root span created from a propagated context that contains a sampling priority.
                             // lock sampling priority when a span is started from a propagated trace.
@@ -75,10 +75,9 @@ namespace Datadog.Trace
                         }
                         else
                         {
-                            // this is a local root span (i.e. not propagated).
+                            // this is a local root span (i.e. not propagated), or was propagated without sampling priority.
                             // determine an initial sampling priority for this trace, but don't lock it yet
-                            _samplingPriority =
-                                Tracer.Sampler?.GetSamplingPriority(RootSpan);
+                            _samplingPriority = Tracer.Sampler?.GetSamplingPriority(RootSpan);
                         }
                     }
                 }

@@ -165,20 +165,20 @@ namespace Datadog.Trace.Tests
         [MemberData(nameof(GetHeaderCollectionImplementations))]
         internal void InjectExtract_Identity(IHeadersCollection headers)
         {
-            const int traceId = 9;
-            const int spanId = 7;
+            const ulong traceId = 9;
+            const ulong spanId = 7;
             const SamplingPriority samplingPriority = SamplingPriority.UserKeep;
             const string origin = "synthetics";
 
-            var context = new SpanContext(traceId, spanId, samplingPriority, null, origin);
+            var context = new SpanContext(traceId, spanId, samplingPriority, serviceName: null, origin);
             SpanContextPropagator.Instance.Inject(context, headers);
             var resultContext = SpanContextPropagator.Instance.Extract(headers);
 
             Assert.NotNull(resultContext);
-            Assert.Equal(context.SpanId, resultContext.SpanId);
-            Assert.Equal(context.TraceId, resultContext.TraceId);
-            Assert.Equal(context.SamplingPriority, resultContext.SamplingPriority);
-            Assert.Equal(context.Origin, resultContext.Origin);
+            Assert.Equal(spanId, resultContext.SpanId);
+            Assert.Equal(traceId, resultContext.TraceId);
+            Assert.Equal(samplingPriority, resultContext.SamplingPriority);
+            Assert.Equal(origin, resultContext.Origin);
         }
 
         [Theory]

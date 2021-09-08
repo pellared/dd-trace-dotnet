@@ -399,20 +399,24 @@ namespace Datadog.Trace
                 parent = _scopeManager.Active?.Span?.Context;
             }
 
-            ITraceContext traceContext;
+            ITraceContext traceContext = null;
 
             // try to get the trace context (from local spans) or
             // sampling priority (from propagated spans),
             // otherwise start a new trace context
-            if (parent is SpanContext parentSpanContext)
+            if (parent is PropagatedSpanContext propagatedContext)
             {
-                traceContext = parentSpanContext.TraceContext ??
-                    new TraceContext(this) { SamplingPriority = parentSpanContext.SamplingPriority };
+                // note: TraceContext.SamplingPriority is set again and locked in TraceContext.AddSpan(),
+                // so setting it here is only temporary and possibly redundant.
+                traceContext = new TraceContext(this) { SamplingPriority = propagatedContext.SamplingPriority };
             }
-            else
+            else if (parent is SpanContext parentContext)
             {
-                traceContext = new TraceContext(this);
+                traceContext = parentContext.TraceContext;
             }
+
+            // ISpanContext is public so we may get a custom type without trace context
+            traceContext ??= new TraceContext(this);
 
             var finalServiceName = serviceName ?? parent?.ServiceName ?? DefaultServiceName;
             var spanContext = new SpanContext(parent, traceContext, finalServiceName, spanId);

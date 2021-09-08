@@ -67,7 +67,7 @@ namespace Datadog.Trace
                 headers.Set(HttpHeaderNames.Origin, context.Origin);
             }
 
-            var samplingPriority = (int?)(context.TraceContext?.SamplingPriority ?? context.SamplingPriority);
+            var samplingPriority = (int?)context.TraceContext?.SamplingPriority;
 
             if (samplingPriority != null)
             {
@@ -105,7 +105,7 @@ namespace Datadog.Trace
                 setter(carrier, HttpHeaderNames.Origin, context.Origin);
             }
 
-            var samplingPriority = (int?)(context.TraceContext?.SamplingPriority ?? context.SamplingPriority);
+            var samplingPriority = (int?)context.TraceContext?.SamplingPriority;
 
             if (samplingPriority != null)
             {
@@ -119,7 +119,7 @@ namespace Datadog.Trace
         /// <param name="headers">The headers that contain the values to be extracted.</param>
         /// <typeparam name="T">Type of header collection</typeparam>
         /// <returns>A new <see cref="SpanContext"/> that contains the values obtained from <paramref name="headers"/>.</returns>
-        public SpanContext Extract<T>(T headers)
+        public PropagatedSpanContext Extract<T>(T headers)
             where T : IHeadersCollection
         {
             if (headers == null)
@@ -139,7 +139,7 @@ namespace Datadog.Trace
             var samplingPriority = ParseSamplingPriority(headers, HttpHeaderNames.SamplingPriority);
             var origin = ParseString(headers, HttpHeaderNames.Origin);
 
-            return new SpanContext(traceId, parentId, samplingPriority, null, origin);
+            return new PropagatedSpanContext(traceId, parentId, samplingPriority, serviceName: null, origin);
         }
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace Datadog.Trace
         /// <param name="getter">The function that can extract a list of values for a given header name.</param>
         /// <typeparam name="T">Type of header collection</typeparam>
         /// <returns>A new <see cref="SpanContext"/> that contains the values obtained from <paramref name="carrier"/>.</returns>
-        public SpanContext Extract<T>(T carrier, Func<T, string, IEnumerable<string>> getter)
+        public PropagatedSpanContext Extract<T>(T carrier, Func<T, string, IEnumerable<string>> getter)
         {
             if (carrier == null) { throw new ArgumentNullException(nameof(carrier)); }
 
@@ -167,7 +167,7 @@ namespace Datadog.Trace
             var samplingPriority = ParseSamplingPriority(carrier, getter, HttpHeaderNames.SamplingPriority);
             var origin = ParseString(carrier, getter, HttpHeaderNames.Origin);
 
-            return new SpanContext(traceId, parentId, samplingPriority, null, origin);
+            return new PropagatedSpanContext(traceId, parentId, samplingPriority, serviceName: null, origin);
         }
 
         [Obsolete("This method is deprecated and will be removed. Use ExtractHeaderTags<T>(T, IEnumerable<KeyValuePair<string, string>>, string) instead. " +

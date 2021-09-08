@@ -306,7 +306,7 @@ namespace Datadog.Trace
             switch (key)
             {
                 case Trace.Tags.SamplingPriority:
-                    return ((int?)(Context.TraceContext?.SamplingPriority ?? Context.SamplingPriority))?.ToString();
+                    return ((int?)Context.TraceContext?.SamplingPriority)?.ToString();
                 case Trace.Tags.Origin:
                     return Context.Origin;
                 default:
