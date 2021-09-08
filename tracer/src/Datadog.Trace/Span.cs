@@ -85,7 +85,7 @@ namespace Datadog.Trace
         /// </summary>
         public ulong SpanId => Context.SpanId;
 
-        internal ITags Tags { get; set; }
+        internal ITags Tags { get; }
 
         internal SpanContext Context { get; }
 
@@ -306,7 +306,7 @@ namespace Datadog.Trace
             switch (key)
             {
                 case Trace.Tags.SamplingPriority:
-                    return ((int?)Context.TraceContext?.SamplingPriority)?.ToString();
+                    return ((int?)Context.TraceContext.SamplingPriority)?.ToString();
                 case Trace.Tags.Origin:
                     return Context.Origin;
                 default:

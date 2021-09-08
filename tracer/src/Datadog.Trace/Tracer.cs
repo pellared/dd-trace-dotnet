@@ -49,7 +49,7 @@ namespace Datadog.Trace
 
         private static Tracer _instance;
         private static bool _globalInstanceInitialized;
-        private static object _globalInstanceLock = new object();
+        private static object _globalInstanceLock = new();
 
         private static RuntimeMetricsWriter _runtimeMetricsWriter;
 
@@ -419,9 +419,7 @@ namespace Datadog.Trace
             traceContext ??= new TraceContext(this);
 
             var finalServiceName = serviceName ?? parent?.ServiceName ?? DefaultServiceName;
-            var spanContext = new SpanContext(parent, traceContext, finalServiceName, spanId);
-
-            return spanContext;
+            return new SpanContext(parent, traceContext, finalServiceName, spanId);
         }
 
         internal Scope StartActiveWithTags(string operationName, ISpanContext parent = null, string serviceName = null, DateTimeOffset? startTime = null, bool ignoreActiveScope = false, bool finishOnClose = true, ITags tags = null, ulong? spanId = null)
@@ -737,7 +735,7 @@ namespace Datadog.Trace
 
         private void InitializeLibLogScopeEventSubscriber(IScopeManager scopeManager, string defaultServiceName, string version, string env)
         {
-            new LibLogScopeEventSubscriber(this, scopeManager, defaultServiceName, version ?? string.Empty, env ?? string.Empty);
+            _ = new LibLogScopeEventSubscriber(this, scopeManager, defaultServiceName, version ?? string.Empty, env ?? string.Empty);
         }
 
         private void CurrentDomain_ProcessExit(object sender, EventArgs e)
