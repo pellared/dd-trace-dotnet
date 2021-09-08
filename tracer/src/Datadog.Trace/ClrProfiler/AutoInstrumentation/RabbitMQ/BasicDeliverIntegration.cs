@@ -50,7 +50,7 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.RabbitMQ
             where TBasicProperties : IBasicProperties
             where TBody : IBody // ReadOnlyMemory<byte> body in 6.0.0
         {
-            SpanContext propagatedContext = null;
+            ISpanContext propagatedContext = null;
 
             // try to extract propagated context values from headers
             if (basicProperties?.Headers != null)

@@ -124,7 +124,7 @@ namespace Datadog.Trace.ClrProfiler.Integrations
                 throw;
             }
 
-            SpanContext propagatedContext = null;
+            ISpanContext propagatedContext = null;
             if (basicProperties.TryDuckCast<IBasicProperties>(out var basicPropertiesValue))
             {
                 // try to extract propagated context values from headers
@@ -228,7 +228,7 @@ namespace Datadog.Trace.ClrProfiler.Integrations
                 throw;
             }
 
-            SpanContext propagatedContext = null;
+            ISpanContext propagatedContext = null;
             if (basicProperties.TryDuckCast<IBasicProperties>(out var basicPropertiesValue))
             {
                 // try to extract propagated context values from headers
@@ -341,7 +341,7 @@ namespace Datadog.Trace.ClrProfiler.Integrations
             }
             finally
             {
-                SpanContext propagatedContext = null;
+                ISpanContext propagatedContext = null;
                 string messageSize = null;
 
                 if (result != null && result.TryDuckCast<BasicGetResultStruct>(out var basicGetResult))
