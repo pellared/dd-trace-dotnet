@@ -12,6 +12,30 @@ namespace Datadog.Trace
     /// </summary>
     public class SpanContext : ISpanContext
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SpanContext"/> class FOR TESTING PURPOSES ONLY.
+        /// </summary>
+        /// <param name="traceId">The propagated trace id.</param>
+        /// <param name="spanId">The propagated span id.</param>
+        /// <remarks>FOR TESTING PURPOSES ONLY.</remarks>
+        internal SpanContext(ulong? traceId, ulong spanId)
+            : this(traceId, serviceName: null)
+        {
+            SpanId = spanId;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SpanContext"/> class FOR TESTING PURPOSES ONLY.
+        /// </summary>
+        /// <param name="traceId">The propagated trace id.</param>
+        /// <param name="spanId">The propagated span id.</param>
+        /// <param name="samplingPriority">The propagated sampling priority.</param>
+        /// <remarks>FOR TESTING PURPOSES ONLY.</remarks>
+        internal SpanContext(ulong? traceId, ulong spanId, SamplingPriority? samplingPriority)
+            : this(traceId, serviceName: null)
+        {
+            SpanId = spanId;
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SpanContext"/> class
@@ -26,25 +50,24 @@ namespace Datadog.Trace
             : this(traceId, serviceName)
         {
             SpanId = spanId;
-            SamplingPriority = samplingPriority;
+            // SamplingPriority = samplingPriority;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SpanContext"/> class
-        /// from a propagated context. <see cref="Parent"/> will be null
-        /// since this is a root context locally.
+        /// Initializes a new instance of the <see cref="SpanContext"/> class FOR TESTING PURPOSES ONLY.
         /// </summary>
         /// <param name="traceId">The propagated trace id.</param>
         /// <param name="spanId">The propagated span id.</param>
         /// <param name="samplingPriority">The propagated sampling priority.</param>
         /// <param name="serviceName">The service name to propagate to child spans.</param>
         /// <param name="origin">The propagated origin of the trace.</param>
+        /// <remarks>FOR TESTING PURPOSES ONLY.</remarks>
         internal SpanContext(ulong? traceId, ulong spanId, SamplingPriority? samplingPriority, string serviceName, string origin)
             : this(traceId, serviceName)
         {
             SpanId = spanId;
-            SamplingPriority = samplingPriority;
             Origin = origin;
+            TraceContext = new TraceContext(null) { SamplingPriority = samplingPriority };
         }
 
         /// <summary>
