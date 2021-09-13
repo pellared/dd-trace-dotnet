@@ -4,14 +4,11 @@
 // </copyright>
 
 using System;
-using Datadog.Trace.Logging;
 
 namespace Datadog.Trace
 {
     internal abstract class ScopeManagerBase : IScopeManager, IScopeRawAccess
     {
-        private static readonly IDatadogLogger Log = DatadogLogging.GetLoggerFor(typeof(ScopeManagerBase));
-
         public event EventHandler<SpanEventArgs> TraceStarted;
 
         public event EventHandler<SpanEventArgs> SpanOpened;
