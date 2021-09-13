@@ -54,25 +54,30 @@ namespace Datadog.Trace
 
             if (headers == null) { throw new ArgumentNullException(nameof(headers)); }
 
-            // lock sampling priority when span propagates.
-            context.TraceContext?.LockSamplingPriority();
-
             headers.Set(HttpHeaderNames.TraceId, context.TraceId.ToString(InvariantCulture));
             headers.Set(HttpHeaderNames.ParentId, context.SpanId.ToString(InvariantCulture));
 
-            // avoid writing origin header if not set, keeping the previous behavior.
-            if (context.Origin != null)
-            {
-                headers.Set(HttpHeaderNames.Origin, context.Origin);
-            }
+            // lock sampling priority when span propagates.
+            var traceContext = context.TraceContext;
 
-            var samplingPriority = (int?)context.TraceContext?.SamplingPriority;
-
-            if (samplingPriority != null)
+            if (traceContext != null)
             {
-                headers.Set(
-                    HttpHeaderNames.SamplingPriority,
-                    samplingPriority.Value.ToString(InvariantCulture));
+                traceContext.LockSamplingPriority();
+
+                // avoid writing origin header if not set, keeping the previous behavior.
+                if (traceContext.Origin != null)
+                {
+                    headers.Set(HttpHeaderNames.Origin, traceContext.Origin);
+                }
+
+                var samplingPriority = (int?)traceContext.SamplingPriority;
+
+                if (samplingPriority != null)
+                {
+                    headers.Set(
+                        HttpHeaderNames.SamplingPriority,
+                        samplingPriority.Value.ToString(InvariantCulture));
+                }
             }
         }
 
@@ -92,23 +97,28 @@ namespace Datadog.Trace
 
             if (setter == null) { throw new ArgumentNullException(nameof(setter)); }
 
-            // lock sampling priority when span propagates.
-            context.TraceContext?.LockSamplingPriority();
-
             setter(carrier, HttpHeaderNames.TraceId, context.TraceId.ToString(InvariantCulture));
             setter(carrier, HttpHeaderNames.ParentId, context.SpanId.ToString(InvariantCulture));
 
-            // avoid writing origin header if not set, keeping the previous behavior.
-            if (context.Origin != null)
-            {
-                setter(carrier, HttpHeaderNames.Origin, context.Origin);
-            }
+            // lock sampling priority when span propagates.
+            var traceContext = context.TraceContext;
 
-            var samplingPriority = (int?)context.TraceContext?.SamplingPriority;
-
-            if (samplingPriority != null)
+            if (traceContext != null)
             {
-                setter(carrier, HttpHeaderNames.SamplingPriority, samplingPriority?.ToString(InvariantCulture));
+                traceContext.LockSamplingPriority();
+
+                // avoid writing origin header if not set, keeping the previous behavior.
+                if (traceContext.Origin != null)
+                {
+                    setter(carrier, HttpHeaderNames.Origin, traceContext.Origin);
+                }
+
+                var samplingPriority = (int?)traceContext.SamplingPriority;
+
+                if (samplingPriority != null)
+                {
+                    setter(carrier, HttpHeaderNames.SamplingPriority, samplingPriority.Value.ToString(InvariantCulture));
+                }
             }
         }
 
@@ -138,7 +148,7 @@ namespace Datadog.Trace
             var samplingPriority = ParseSamplingPriority(headers, HttpHeaderNames.SamplingPriority);
             var origin = ParseString(headers, HttpHeaderNames.Origin);
 
-            return new PropagatedSpanContext(traceId, parentId, samplingPriority, serviceName: null, origin);
+            return new PropagatedSpanContext(traceId, parentId, samplingPriority, origin);
         }
 
         /// <summary>
@@ -166,7 +176,7 @@ namespace Datadog.Trace
             var samplingPriority = ParseSamplingPriority(carrier, getter, HttpHeaderNames.SamplingPriority);
             var origin = ParseString(carrier, getter, HttpHeaderNames.Origin);
 
-            return new PropagatedSpanContext(traceId, parentId, samplingPriority, serviceName: null, origin);
+            return new PropagatedSpanContext(traceId, parentId, samplingPriority, origin);
         }
 
         [Obsolete("This method is deprecated and will be removed. Use ExtractHeaderTags<T>(T, IEnumerable<KeyValuePair<string, string>>, string) instead. " +

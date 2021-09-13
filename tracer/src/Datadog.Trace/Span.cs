@@ -71,8 +71,10 @@ namespace Datadog.Trace
         /// </summary>
         public string ServiceName
         {
+#pragma warning disable 612 // CS0612: member is obsolete
             get => Context.ServiceName;
             set => Context.ServiceName = value;
+#pragma warning restore 612
         }
 
         /// <summary>
@@ -111,7 +113,7 @@ namespace Datadog.Trace
             sb.AppendLine($"TraceId: {Context.TraceId}");
             sb.AppendLine($"ParentId: {Context.ParentId}");
             sb.AppendLine($"SpanId: {Context.SpanId}");
-            sb.AppendLine($"Origin: {Context.Origin}");
+            sb.AppendLine($"Origin: {Context.TraceContext.Origin}");
             sb.AppendLine($"ServiceName: {ServiceName}");
             sb.AppendLine($"OperationName: {OperationName}");
             sb.AppendLine($"Resource: {ResourceName}");
@@ -142,13 +144,14 @@ namespace Datadog.Trace
             switch (key)
             {
                 case Trace.Tags.Origin:
-                    Context.Origin = value;
+                    // allow setting the trace's origin via a tag
+                    Context.TraceContext.Origin = value;
                     break;
                 case Trace.Tags.SamplingPriority:
                     if (Enum.TryParse(value, out SamplingPriority samplingPriority) &&
                         Enum.IsDefined(typeof(SamplingPriority), samplingPriority))
                     {
-                        // allow setting the sampling priority via a tag
+                        // allow setting the trace's sampling priority via a tag
                         Context.TraceContext.SamplingPriority = samplingPriority;
                     }
 
@@ -308,7 +311,7 @@ namespace Datadog.Trace
                 case Trace.Tags.SamplingPriority:
                     return ((int?)Context.TraceContext.SamplingPriority)?.ToString();
                 case Trace.Tags.Origin:
-                    return Context.Origin;
+                    return Context.TraceContext.Origin;
                 default:
                     return Tags.GetTag(key);
             }

@@ -418,7 +418,7 @@ namespace Datadog.Trace
             // ISpanContext is public so we may get a custom type without trace context
             traceContext ??= new TraceContext(this);
 
-            var finalServiceName = serviceName ?? parent?.ServiceName ?? DefaultServiceName;
+            var finalServiceName = serviceName ?? DefaultServiceName;
             return new SpanContext(parent, traceContext, finalServiceName, spanId);
         }
 

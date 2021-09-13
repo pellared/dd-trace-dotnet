@@ -13,6 +13,8 @@ namespace Datadog.Trace
 
         SamplingPriority? SamplingPriority { get; set; }
 
+        string Origin { get; set; }
+
         Span RootSpan { get; }
 
         void AddSpan(Span span);

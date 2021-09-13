@@ -31,7 +31,7 @@ namespace Datadog.Trace.Tests.Sampling
 
             rule.SetDefaultSampleRates(new[] { new KeyValuePair<string, float>(key, .5f) });
 
-            var span = new Span(new SpanContext(1, 1, null, serviceName: expectedService), DateTimeOffset.Now);
+            var span = new Span(new SpanContext(traceId: 1, spanId: 1, expectedService), DateTimeOffset.Now);
             span.SetTag(Tags.Env, expectedEnv);
 
             var samplingRate = rule.GetSamplingRate(span);

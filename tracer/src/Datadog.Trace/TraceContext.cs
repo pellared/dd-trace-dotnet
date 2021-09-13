@@ -33,7 +33,9 @@ namespace Datadog.Trace
 
         public DateTimeOffset UtcNow => _utcStart.Add(Elapsed);
 
-        public IDatadogTracer Tracer { get; }
+        private IDatadogTracer Tracer { get; }
+
+        public string Origin { get; set; }
 
         /// <summary>
         /// Gets or sets sampling priority.

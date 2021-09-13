@@ -10,12 +10,11 @@ namespace Datadog.Trace
     /// </summary>
     internal class PropagatedSpanContext : ISpanContext
     {
-        public PropagatedSpanContext(ulong traceId, ulong spanId, SamplingPriority? samplingPriority, string serviceName, string origin)
+        public PropagatedSpanContext(ulong traceId, ulong spanId, SamplingPriority? samplingPriority, string origin)
         {
             TraceId = traceId;
             SpanId = spanId;
             SamplingPriority = samplingPriority;
-            ServiceName = serviceName;
             Origin = origin;
         }
 
@@ -32,7 +31,7 @@ namespace Datadog.Trace
         /// <summary>
         /// Gets the service name.
         /// </summary>
-        public string ServiceName { get; }
+        public string ServiceName => null;
 
         /// <summary>
         /// Gets the origin of the trace.
