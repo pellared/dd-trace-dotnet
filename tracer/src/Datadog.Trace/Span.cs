@@ -85,7 +85,7 @@ namespace Datadog.Trace
         /// </summary>
         public ulong SpanId => Context.SpanId;
 
-        internal ITags Tags { get; set; }
+        internal ITags Tags { get; }
 
         internal SpanContext Context { get; }
 
