@@ -6,9 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Linq;
 using Datadog.Trace.ExtensionMethods;
 using Datadog.Trace.Headers;
 using Datadog.Trace.Logging;
@@ -26,20 +24,9 @@ namespace Datadog.Trace
 
         private static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
         private static readonly IDatadogLogger Log = DatadogLogging.GetLoggerFor<SpanContextPropagator>();
-        private static readonly ConcurrentDictionary<Key, string> DefaultTagMappingCache = new ConcurrentDictionary<Key, string>();
+        private static readonly ConcurrentDictionary<Key, string> DefaultTagMappingCache = new();
 
-        private static readonly int[] SamplingPriorities;
-
-        static SpanContextPropagator()
-        {
-            SamplingPriorities = Enum.GetValues(typeof(SamplingPriority)).Cast<int>().ToArray();
-        }
-
-        private SpanContextPropagator()
-        {
-        }
-
-        public static SpanContextPropagator Instance { get; } = new SpanContextPropagator();
+        public static SpanContextPropagator Instance { get; } = new();
 
         /// <summary>
         /// Propagates the specified context by adding new headers to a <see cref="IHeadersCollection"/>.
@@ -55,26 +42,7 @@ namespace Datadog.Trace
 
             if (headers == null) { throw new ArgumentNullException(nameof(headers)); }
 
-            // lock sampling priority when span propagates.
-            context.TraceContext?.LockSamplingPriority();
-
-            headers.Set(HttpHeaderNames.TraceId, context.TraceId.ToString(InvariantCulture));
-            headers.Set(HttpHeaderNames.ParentId, context.SpanId.ToString(InvariantCulture));
-
-            // avoid writing origin header if not set, keeping the previous behavior.
-            if (context.Origin != null)
-            {
-                headers.Set(HttpHeaderNames.Origin, context.Origin);
-            }
-
-            var samplingPriority = (int?)(context.TraceContext?.SamplingPriority ?? context.SamplingPriority);
-
-            if (samplingPriority != null)
-            {
-                headers.Set(
-                    HttpHeaderNames.SamplingPriority,
-                    samplingPriority.Value.ToString(InvariantCulture));
-            }
+            Inject(context, headers, (h, key, value) => h.Set(key, value));
         }
 
         /// <summary>
@@ -109,7 +77,7 @@ namespace Datadog.Trace
 
             if (samplingPriority != null)
             {
-                setter(carrier, HttpHeaderNames.SamplingPriority, samplingPriority?.ToString(InvariantCulture));
+                setter(carrier, HttpHeaderNames.SamplingPriority, ((int)samplingPriority).ToString(InvariantCulture));
             }
         }
 
@@ -122,24 +90,9 @@ namespace Datadog.Trace
         public SpanContext Extract<T>(T headers)
             where T : IHeadersCollection
         {
-            if (headers == null)
-            {
-                throw new ArgumentNullException(nameof(headers));
-            }
+            if (headers == null) { throw new ArgumentNullException(nameof(headers)); }
 
-            var traceId = ParseUInt64(headers, HttpHeaderNames.TraceId);
-
-            if (traceId == 0)
-            {
-                // a valid traceId is required to use distributed tracing
-                return null;
-            }
-
-            var parentId = ParseUInt64(headers, HttpHeaderNames.ParentId);
-            var samplingPriority = ParseSamplingPriority(headers, HttpHeaderNames.SamplingPriority);
-            var origin = ParseString(headers, HttpHeaderNames.Origin);
-
-            return new SpanContext(traceId, parentId, samplingPriority, null, origin);
+            return Extract(headers, HeadersValueGetter<T>());
         }
 
         /// <summary>
@@ -167,31 +120,7 @@ namespace Datadog.Trace
             var samplingPriority = ParseSamplingPriority(carrier, getter, HttpHeaderNames.SamplingPriority);
             var origin = ParseString(carrier, getter, HttpHeaderNames.Origin);
 
-            return new SpanContext(traceId, parentId, samplingPriority, null, origin);
-        }
-
-        [Obsolete("This method is deprecated and will be removed. Use ExtractHeaderTags<T>(T, IEnumerable<KeyValuePair<string, string>>, string) instead. " +
-            "Kept for backwards compatability where there is a version mismatch between manual and automatic instrumentation")]
-        public IEnumerable<KeyValuePair<string, string>> ExtractHeaderTags<T>(T headers, IEnumerable<KeyValuePair<string, string>> headerToTagMap)
-            where T : IHeadersCollection
-        {
-            foreach (KeyValuePair<string, string> headerNameToTagName in headerToTagMap)
-            {
-                // Empty tag names were only allowed when the newer API was introduced,
-                // so we should never encounter an empty tag name when invoking this API.
-                // But just in case we get here, skip the processing of this header:tag mapping
-                if (string.IsNullOrWhiteSpace(headerNameToTagName.Value))
-                {
-                    continue;
-                }
-
-                string headerValue = ParseString(headers, headerNameToTagName.Key);
-
-                if (headerValue != null)
-                {
-                    yield return new KeyValuePair<string, string>(headerNameToTagName.Value, headerValue);
-                }
-            }
+            return new SpanContext(traceId, parentId, samplingPriority, serviceName: null, origin);
         }
 
         public IEnumerable<KeyValuePair<string, string>> ExtractHeaderTags<T>(T headers, IEnumerable<KeyValuePair<string, string>> headerToTagMap, string defaultTagPrefix)
@@ -199,7 +128,7 @@ namespace Datadog.Trace
         {
             foreach (KeyValuePair<string, string> headerNameToTagName in headerToTagMap)
             {
-                string headerValue = ParseString(headers, headerNameToTagName.Key);
+                string headerValue = ParseString(headers, HeadersValueGetter<T>(), headerNameToTagName.Key);
                 if (headerValue is null)
                 {
                     continue;
@@ -235,29 +164,10 @@ namespace Datadog.Trace
             }
         }
 
-        private static ulong ParseUInt64<T>(T headers, string headerName)
+        private static Func<T, string, IEnumerable<string>> HeadersValueGetter<T>()
             where T : IHeadersCollection
         {
-            var headerValues = headers.GetValues(headerName);
-
-            bool hasValue = false;
-
-            foreach (string headerValue in headerValues)
-            {
-                if (ulong.TryParse(headerValue, NumberStyles, InvariantCulture, out var result))
-                {
-                    return result;
-                }
-
-                hasValue = true;
-            }
-
-            if (hasValue)
-            {
-                Log.Warning("Could not parse {HeaderName} headers: {HeaderValues}", headerName, string.Join(",", headerValues));
-            }
-
-            return 0;
+            return (headers, key) => headers.GetValues(key);
         }
 
         private static ulong ParseUInt64<T>(T carrier, Func<T, string, IEnumerable<string>> getter, string headerName)
@@ -282,37 +192,6 @@ namespace Datadog.Trace
             }
 
             return 0;
-        }
-
-        private static SamplingPriority? ParseSamplingPriority<T>(T headers, string headerName)
-            where T : IHeadersCollection
-        {
-            var headerValues = headers.GetValues(headerName);
-
-            bool hasValue = false;
-
-            foreach (string headerValue in headerValues)
-            {
-                if (int.TryParse(headerValue, out var result))
-                {
-                    if (MinimumSamplingPriority <= result && result <= MaximumSamplingPriority)
-                    {
-                        return (SamplingPriority)result;
-                    }
-                }
-
-                hasValue = true;
-            }
-
-            if (hasValue)
-            {
-                Log.Warning(
-                    "Could not parse {HeaderName} headers: {HeaderValues}",
-                    headerName,
-                    string.Join(",", headerValues));
-            }
-
-            return default;
         }
 
         private static SamplingPriority? ParseSamplingPriority<T>(T carrier, Func<T, string, IEnumerable<string>> getter, string headerName)
@@ -376,7 +255,7 @@ namespace Datadog.Trace
             return null;
         }
 
-        private struct Key : IEquatable<Key>
+        private readonly struct Key : IEquatable<Key>
         {
             public readonly string HeaderName;
             public readonly string TagPrefix;
