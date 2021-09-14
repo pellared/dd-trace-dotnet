@@ -212,7 +212,7 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.Kafka
 
                 var adapter = new KafkaHeadersCollectionAdapter(message.Headers);
 
-                SpanContextPropagator.Instance.Inject(context, adapter);
+                SpanContextPropagator.Instance.Inject(context, adapter, (carrier, key, value) => carrier.Set(key, value));
             }
             catch (Exception ex)
             {

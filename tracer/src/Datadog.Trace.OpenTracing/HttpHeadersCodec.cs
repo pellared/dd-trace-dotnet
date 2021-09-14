@@ -42,7 +42,7 @@ namespace Datadog.Trace.OpenTracing
             if (context is OpenTracingSpanContext otSpanContext && otSpanContext.Context is SpanContext ddSpanContext)
             {
                 // this is a Datadog context
-                SpanContextPropagator.Instance.Inject(ddSpanContext, headers);
+                SpanContextPropagator.Instance.Inject(ddSpanContext, headers, (collection, key, value) => collection.Set(key, value));
             }
             else
             {
