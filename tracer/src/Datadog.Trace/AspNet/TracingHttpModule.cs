@@ -133,7 +133,7 @@ namespace Datadog.Trace.AspNet
                 // (e.g. WCF being hosted in IIS)
                 if (HttpRuntime.UsingIntegratedPipeline)
                 {
-                    SpanContextPropagator.Instance.Inject(scope.Span.Context, httpRequest.Headers.Wrap());
+                    SpanContextPropagator.Instance.Inject(scope.Span.Context, httpRequest.Headers.Wrap(), (carrier, key, value) => carrier.Set(key, value));
                 }
 
                 httpContext.Items[_httpContextScopeKey] = scope;

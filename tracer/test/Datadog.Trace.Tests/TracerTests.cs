@@ -373,7 +373,7 @@ namespace Datadog.Trace.Tests
 
             IHeadersCollection headers = WebRequest.CreateHttp("http://localhost").Headers.Wrap();
 
-            SpanContextPropagator.Instance.Inject(secondSpan.Span.Context, headers);
+            SpanContextPropagator.Instance.Inject(secondSpan.Span.Context, headers, (carrier, key, value) => carrier.Set(key, value));
             var resultContext = SpanContextPropagator.Instance.Extract(headers, (carrier, key) => carrier.GetValues(key));
 
             Assert.NotNull(resultContext);

@@ -32,23 +32,6 @@ namespace Datadog.Trace
         /// Propagates the specified context by adding new headers to a <see cref="IHeadersCollection"/>.
         /// This locks the sampling priority for <paramref name="context"/>.
         /// </summary>
-        /// <param name="context">A <see cref="SpanContext"/> value that will be propagated into <paramref name="headers"/>.</param>
-        /// <param name="headers">A <see cref="IHeadersCollection"/> to add new headers to.</param>
-        /// <typeparam name="T">Type of header collection</typeparam>
-        public void Inject<T>(SpanContext context, T headers)
-            where T : IHeadersCollection
-        {
-            if (context == null) { throw new ArgumentNullException(nameof(context)); }
-
-            if (headers == null) { throw new ArgumentNullException(nameof(headers)); }
-
-            Inject(context, headers, (h, key, value) => h.Set(key, value));
-        }
-
-        /// <summary>
-        /// Propagates the specified context by adding new headers to a <see cref="IHeadersCollection"/>.
-        /// This locks the sampling priority for <paramref name="context"/>.
-        /// </summary>
         /// <param name="context">A <see cref="SpanContext"/> value that will be propagated into <paramref name="carrier"/>.</param>
         /// <param name="carrier">The headers to add to.</param>
         /// <param name="setter">The action that can set a header in the carrier.</param>

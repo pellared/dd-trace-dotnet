@@ -171,7 +171,7 @@ namespace Datadog.Trace.Tests
             const string origin = "synthetics";
 
             var context = new SpanContext(traceId, spanId, samplingPriority, null, origin);
-            SpanContextPropagator.Instance.Inject(context, headers);
+            SpanContextPropagator.Instance.Inject(context, headers, (carrier, key, value) => carrier.Set(key, value));
             var resultContext = SpanContextPropagator.Instance.Extract(headers, (carrier, key) => carrier.GetValues(key));
 
             Assert.NotNull(resultContext);

@@ -431,7 +431,7 @@ namespace Datadog.Trace.ClrProfiler.Integrations
                         tags.HttpClientHandlerType = reportedType.FullName;
 
                         // add distributed tracing headers to the HTTP request
-                        SpanContextPropagator.Instance.Inject(scope.Span.Context, new HttpHeadersCollection(requestValue.Headers));
+                        SpanContextPropagator.Instance.Inject(scope.Span.Context, new HttpHeadersCollection(requestValue.Headers), (carrier, key, value) => carrier.Set(key, value));
                     }
 
                     var task = (Task)sendAsync(handler, request, cancellationToken);
@@ -477,7 +477,7 @@ namespace Datadog.Trace.ClrProfiler.Integrations
                         tags.HttpClientHandlerType = reportedType.FullName;
 
                         // add distributed tracing headers to the HTTP request
-                        SpanContextPropagator.Instance.Inject(scope.Span.Context, new HttpHeadersCollection(requestValue.Headers));
+                        SpanContextPropagator.Instance.Inject(scope.Span.Context, new HttpHeadersCollection(requestValue.Headers), (collection, key, value) => collection.Set(key, value));
                     }
 
                     var response = send(handler, request, cancellationToken);

@@ -98,7 +98,7 @@ namespace Datadog.Trace.ClrProfiler.Integrations
                     // The expected sequence of calls is GetRequestStream -> GetResponse. Headers can't be modified after calling GetRequestStream.
                     // At the same time, we don't want to set an active scope now, because it's possible that GetResponse will never be called.
                     // Instead, we generate a spancontext and inject it in the headers. GetResponse will fetch them and create an active scope with the right id.
-                    SpanContextPropagator.Instance.Inject(spanContext, request.Headers.Wrap());
+                    SpanContextPropagator.Instance.Inject(spanContext, request.Headers.Wrap(), (carrier, key, value) => carrier.Set(key, value));
                 }
             }
 
@@ -176,7 +176,7 @@ namespace Datadog.Trace.ClrProfiler.Integrations
                     if (scope != null)
                     {
                         // add distributed tracing headers to the HTTP request
-                        SpanContextPropagator.Instance.Inject(scope.Span.Context, request.Headers.Wrap());
+                        SpanContextPropagator.Instance.Inject(scope.Span.Context, request.Headers.Wrap(), (carrier, key, value) => carrier.Set(key, value));
                     }
 
                     WebResponse response = callGetResponse(webRequest);
@@ -261,7 +261,7 @@ namespace Datadog.Trace.ClrProfiler.Integrations
                     if (scope != null)
                     {
                         // add distributed tracing headers to the HTTP request
-                        SpanContextPropagator.Instance.Inject(scope.Span.Context, webRequest.Headers.Wrap());
+                        SpanContextPropagator.Instance.Inject(scope.Span.Context, webRequest.Headers.Wrap(), (carrier, key, value) => carrier.Set(key, value));
                     }
 
                     WebResponse response = await originalMethod(webRequest).ConfigureAwait(false);
