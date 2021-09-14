@@ -39,7 +39,7 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.Http.WebRequest
             if (instance is HttpWebRequest request && IsTracingEnabled(request))
             {
                 // Check if any headers were injected by a previous call to GetRequestStream
-                var spanContext = SpanContextPropagator.Instance.Extract(request.Headers.Wrap());
+                var spanContext = SpanContextPropagator.Instance.Extract(request.Headers.Wrap(), (carrier, key) => carrier.GetValues(key));
 
                 Scope scope = null;
 

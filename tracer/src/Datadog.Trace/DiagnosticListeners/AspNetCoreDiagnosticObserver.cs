@@ -280,7 +280,7 @@ namespace Datadog.Trace.DiagnosticListeners
 
                 if (requestHeaders != null)
                 {
-                    return SpanContextPropagator.Instance.Extract(new HeadersCollectionAdapter(requestHeaders));
+                    return SpanContextPropagator.Instance.Extract(new HeadersCollectionAdapter(requestHeaders), (carrier, key) => carrier.GetValues(key));
                 }
             }
             catch (Exception ex)
