@@ -84,20 +84,6 @@ namespace Datadog.Trace
         /// <summary>
         /// Extracts a <see cref="SpanContext"/> from the values found in the specified headers.
         /// </summary>
-        /// <param name="headers">The headers that contain the values to be extracted.</param>
-        /// <typeparam name="T">Type of header collection</typeparam>
-        /// <returns>A new <see cref="SpanContext"/> that contains the values obtained from <paramref name="headers"/>.</returns>
-        public SpanContext Extract<T>(T headers)
-            where T : IHeadersCollection
-        {
-            if (headers == null) { throw new ArgumentNullException(nameof(headers)); }
-
-            return Extract(headers, HeadersValueGetter<T>());
-        }
-
-        /// <summary>
-        /// Extracts a <see cref="SpanContext"/> from the values found in the specified headers.
-        /// </summary>
         /// <param name="carrier">The headers that contain the values to be extracted.</param>
         /// <param name="getter">The function that can extract a list of values for a given header name.</param>
         /// <typeparam name="T">Type of header collection</typeparam>

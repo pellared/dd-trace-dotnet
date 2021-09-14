@@ -105,7 +105,7 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.Kafka
 
                     try
                     {
-                        propagatedContext = SpanContextPropagator.Instance.Extract(headers);
+                        propagatedContext = SpanContextPropagator.Instance.Extract(headers, (carrier, key) => carrier.GetValues(key));
                     }
                     catch (Exception ex)
                     {

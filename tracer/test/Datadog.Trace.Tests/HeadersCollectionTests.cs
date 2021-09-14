@@ -157,7 +157,7 @@ namespace Datadog.Trace.Tests
         [MemberData(nameof(GetHeaderCollectionImplementations))]
         internal void Extract_EmptyHeadersReturnsNull(IHeadersCollection headers)
         {
-            var resultContext = SpanContextPropagator.Instance.Extract(headers);
+            var resultContext = SpanContextPropagator.Instance.Extract(headers, (carrier, key) => carrier.GetValues(key));
             Assert.Null(resultContext);
         }
 
@@ -172,7 +172,7 @@ namespace Datadog.Trace.Tests
 
             var context = new SpanContext(traceId, spanId, samplingPriority, null, origin);
             SpanContextPropagator.Instance.Inject(context, headers);
-            var resultContext = SpanContextPropagator.Instance.Extract(headers);
+            var resultContext = SpanContextPropagator.Instance.Extract(headers, (carrier, key) => carrier.GetValues(key));
 
             Assert.NotNull(resultContext);
             Assert.Equal(context.SpanId, resultContext.SpanId);
@@ -190,7 +190,7 @@ namespace Datadog.Trace.Tests
             const string origin = "synthetics";
 
             InjectContext(headers, traceId, spanId, samplingPriority, origin);
-            var resultContext = SpanContextPropagator.Instance.Extract(headers);
+            var resultContext = SpanContextPropagator.Instance.Extract(headers, (carrier, key) => carrier.GetValues(key));
 
             // invalid traceId should return a null context even if other values are set
             Assert.Null(resultContext);
@@ -211,7 +211,7 @@ namespace Datadog.Trace.Tests
                 ((int)samplingPriority).ToString(CultureInfo.InvariantCulture),
                 origin);
 
-            var resultContext = SpanContextPropagator.Instance.Extract(headers);
+            var resultContext = SpanContextPropagator.Instance.Extract(headers, (carrier, key) => carrier.GetValues(key));
 
             Assert.NotNull(resultContext);
             Assert.Equal(traceId, resultContext.TraceId);
@@ -235,7 +235,7 @@ namespace Datadog.Trace.Tests
                 samplingPriority,
                 origin);
 
-            var resultContext = SpanContextPropagator.Instance.Extract(headers);
+            var resultContext = SpanContextPropagator.Instance.Extract(headers, (carrier, key) => carrier.GetValues(key));
 
             Assert.NotNull(resultContext);
             Assert.Equal(traceId, resultContext.TraceId);

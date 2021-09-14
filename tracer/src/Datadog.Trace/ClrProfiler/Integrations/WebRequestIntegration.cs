@@ -167,7 +167,7 @@ namespace Datadog.Trace.ClrProfiler.Integrations
             }
 
             // Check if any headers were injected by a previous call to GetRequestStream
-            ISpanContext spanContext = SpanContextPropagator.Instance.Extract(request.Headers.Wrap());
+            ISpanContext spanContext = SpanContextPropagator.Instance.Extract(request.Headers.Wrap(), (carrier, key) => carrier.GetValues(key));
 
             using (var scope = ScopeFactory.CreateOutboundHttpScope(Tracer.Instance, request.Method, request.RequestUri, IntegrationId, out var tags, spanContext?.SpanId))
             {

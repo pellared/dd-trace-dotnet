@@ -62,7 +62,7 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.Http.WebRequest
                 }
 
                 // Check if any headers were injected by a previous call
-                var existingSpanId = SpanContextPropagator.Instance.Extract(request.Headers.Wrap())?.SpanId;
+                var existingSpanId = SpanContextPropagator.Instance.Extract(request.Headers.Wrap(), (carrier, key) => carrier.GetValues(key))?.SpanId;
 
                 Scope scope = null;
 

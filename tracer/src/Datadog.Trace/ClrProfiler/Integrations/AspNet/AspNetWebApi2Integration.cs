@@ -237,7 +237,7 @@ namespace Datadog.Trace.ClrProfiler.Integrations
                         var headers = request.Headers;
                         var headersCollection = new HttpHeadersCollection(headers);
 
-                        propagatedContext = SpanContextPropagator.Instance.Extract(headersCollection);
+                        propagatedContext = SpanContextPropagator.Instance.Extract(headersCollection, (carrier, key) => carrier.GetValues(key));
                         tagsFromHeaders = SpanContextPropagator.Instance.ExtractHeaderTags(headersCollection, tracer.Settings.HeaderTags, SpanContextPropagator.HttpRequestHeadersTagPrefix);
                     }
                     catch (Exception ex)
