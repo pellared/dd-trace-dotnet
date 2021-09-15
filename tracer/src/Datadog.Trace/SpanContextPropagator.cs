@@ -7,7 +7,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using Datadog.Trace.ExtensionMethods;
 using Datadog.Trace.Headers;
 using Datadog.Trace.Logging;
@@ -26,13 +25,6 @@ namespace Datadog.Trace
         private static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
         private static readonly IDatadogLogger Log = DatadogLogging.GetLoggerFor<SpanContextPropagator>();
         private static readonly ConcurrentDictionary<Key, string> DefaultTagMappingCache = new();
-
-        private static readonly int[] SamplingPriorities;
-
-        static SpanContextPropagator()
-        {
-            SamplingPriorities = Enum.GetValues(typeof(SamplingPriority)).Cast<int>().ToArray();
-        }
 
         private SpanContextPropagator()
         {
@@ -198,31 +190,6 @@ namespace Datadog.Trace
             }
         }
 
-        private static ulong ParseUInt64<T>(T headers, string headerName)
-            where T : IHeadersCollection
-        {
-            var headerValues = headers.GetValues(headerName);
-
-            bool hasValue = false;
-
-            foreach (string headerValue in headerValues)
-            {
-                if (ulong.TryParse(headerValue, NumberStyles, InvariantCulture, out var result))
-                {
-                    return result;
-                }
-
-                hasValue = true;
-            }
-
-            if (hasValue)
-            {
-                Log.Warning("Could not parse {HeaderName} headers: {HeaderValues}", headerName, string.Join(",", headerValues));
-            }
-
-            return 0;
-        }
-
         private static ulong ParseUInt64<T>(T carrier, Func<T, string, IEnumerable<string>> getter, string headerName)
         {
             var headerValues = getter(carrier, headerName);
@@ -245,37 +212,6 @@ namespace Datadog.Trace
             }
 
             return 0;
-        }
-
-        private static SamplingPriority? ParseSamplingPriority<T>(T headers, string headerName)
-            where T : IHeadersCollection
-        {
-            var headerValues = headers.GetValues(headerName);
-
-            bool hasValue = false;
-
-            foreach (string headerValue in headerValues)
-            {
-                if (int.TryParse(headerValue, out var result))
-                {
-                    if (MinimumSamplingPriority <= result && result <= MaximumSamplingPriority)
-                    {
-                        return (SamplingPriority)result;
-                    }
-                }
-
-                hasValue = true;
-            }
-
-            if (hasValue)
-            {
-                Log.Warning(
-                    "Could not parse {HeaderName} headers: {HeaderValues}",
-                    headerName,
-                    string.Join(",", headerValues));
-            }
-
-            return default;
         }
 
         private static SamplingPriority? ParseSamplingPriority<T>(T carrier, Func<T, string, IEnumerable<string>> getter, string headerName)
@@ -306,22 +242,6 @@ namespace Datadog.Trace
             }
 
             return default;
-        }
-
-        private static string ParseString<T>(T headers, string headerName)
-            where T : IHeadersCollection
-        {
-            var headerValues = headers.GetValues(headerName);
-
-            foreach (string headerValue in headerValues)
-            {
-                if (!string.IsNullOrEmpty(headerValue))
-                {
-                    return headerValue;
-                }
-            }
-
-            return null;
         }
 
         private static string ParseString<T>(T carrier, Func<T, string, IEnumerable<string>> getter, string headerName)
