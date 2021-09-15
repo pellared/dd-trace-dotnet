@@ -50,30 +50,7 @@ namespace Datadog.Trace
         public void Inject<T>(SpanContext context, T headers)
             where T : IHeadersCollection
         {
-            if (context == null) { throw new ArgumentNullException(nameof(context)); }
-
-            if (headers == null) { throw new ArgumentNullException(nameof(headers)); }
-
-            // lock sampling priority when span propagates.
-            context.TraceContext?.LockSamplingPriority();
-
-            headers.Set(HttpHeaderNames.TraceId, context.TraceId.ToString(InvariantCulture));
-            headers.Set(HttpHeaderNames.ParentId, context.SpanId.ToString(InvariantCulture));
-
-            // avoid writing origin header if not set, keeping the previous behavior.
-            if (context.Origin != null)
-            {
-                headers.Set(HttpHeaderNames.Origin, context.Origin);
-            }
-
-            var samplingPriority = (int?)(context.TraceContext?.SamplingPriority ?? context.SamplingPriority);
-
-            if (samplingPriority != null)
-            {
-                headers.Set(
-                    HttpHeaderNames.SamplingPriority,
-                    samplingPriority.Value.ToString(InvariantCulture));
-            }
+            Inject(context, headers, (carrier, key, value) => carrier.Set(key, value));
         }
 
         /// <summary>
@@ -121,24 +98,7 @@ namespace Datadog.Trace
         public SpanContext Extract<T>(T headers)
             where T : IHeadersCollection
         {
-            if (headers == null)
-            {
-                throw new ArgumentNullException(nameof(headers));
-            }
-
-            var traceId = ParseUInt64(headers, HttpHeaderNames.TraceId);
-
-            if (traceId == 0)
-            {
-                // a valid traceId is required to use distributed tracing
-                return null;
-            }
-
-            var parentId = ParseUInt64(headers, HttpHeaderNames.ParentId);
-            var samplingPriority = ParseSamplingPriority(headers, HttpHeaderNames.SamplingPriority);
-            var origin = ParseString(headers, HttpHeaderNames.Origin);
-
-            return new SpanContext(traceId, parentId, samplingPriority, null, origin);
+            return Extract(headers, (carrier, key) => carrier.GetValues(key));
         }
 
         /// <summary>
@@ -184,7 +144,7 @@ namespace Datadog.Trace
                     continue;
                 }
 
-                string headerValue = ParseString(headers, headerNameToTagName.Key);
+                string headerValue = ParseString(headers, (carrier, key) => carrier.GetValues(key), headerNameToTagName.Key);
 
                 if (headerValue != null)
                 {
@@ -198,7 +158,7 @@ namespace Datadog.Trace
         {
             foreach (KeyValuePair<string, string> headerNameToTagName in headerToTagMap)
             {
-                string headerValue = ParseString(headers, headerNameToTagName.Key);
+                string headerValue = ParseString(headers, (carrier, key) => carrier.GetValues(key), headerNameToTagName.Key);
                 if (headerValue is null)
                 {
                     continue;
