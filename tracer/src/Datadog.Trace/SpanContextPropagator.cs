@@ -47,6 +47,8 @@ namespace Datadog.Trace
         /// <param name="context">A <see cref="SpanContext"/> value that will be propagated into <paramref name="headers"/>.</param>
         /// <param name="headers">A <see cref="IHeadersCollection"/> to add new headers to.</param>
         /// <typeparam name="T">Type of header collection</typeparam>
+        [Obsolete("This method is deprecated and will be removed. Use Inject<T>(SpanContext context, T carrier, Action<T, string, string> setter) instead. " +
+                  "Kept for backwards compatability where there is a version mismatch between manual and automatic instrumentation")]
         public void Inject<T>(SpanContext context, T headers)
             where T : IHeadersCollection
         {
@@ -95,6 +97,8 @@ namespace Datadog.Trace
         /// <param name="headers">The headers that contain the values to be extracted.</param>
         /// <typeparam name="T">Type of header collection</typeparam>
         /// <returns>A new <see cref="SpanContext"/> that contains the values obtained from <paramref name="headers"/>.</returns>
+        [Obsolete("This method is deprecated and will be removed. Use Extract<T>(T carrier, Func<T, string, IEnumerable<string>> getter) instead. " +
+                  "Kept for backwards compatability where there is a version mismatch between manual and automatic instrumentation")]
         public SpanContext Extract<T>(T headers)
             where T : IHeadersCollection
         {
