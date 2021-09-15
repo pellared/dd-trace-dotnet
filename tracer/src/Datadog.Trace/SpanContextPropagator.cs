@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using Datadog.Trace.ExtensionMethods;
@@ -26,7 +25,7 @@ namespace Datadog.Trace
 
         private static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
         private static readonly IDatadogLogger Log = DatadogLogging.GetLoggerFor<SpanContextPropagator>();
-        private static readonly ConcurrentDictionary<Key, string> DefaultTagMappingCache = new ConcurrentDictionary<Key, string>();
+        private static readonly ConcurrentDictionary<Key, string> DefaultTagMappingCache = new();
 
         private static readonly int[] SamplingPriorities;
 
@@ -39,7 +38,7 @@ namespace Datadog.Trace
         {
         }
 
-        public static SpanContextPropagator Instance { get; } = new SpanContextPropagator();
+        public static SpanContextPropagator Instance { get; } = new();
 
         /// <summary>
         /// Propagates the specified context by adding new headers to a <see cref="IHeadersCollection"/>.
@@ -109,7 +108,7 @@ namespace Datadog.Trace
 
             if (samplingPriority != null)
             {
-                setter(carrier, HttpHeaderNames.SamplingPriority, samplingPriority?.ToString(InvariantCulture));
+                setter(carrier, HttpHeaderNames.SamplingPriority, ((int)samplingPriority).ToString(InvariantCulture));
             }
         }
 
@@ -167,7 +166,7 @@ namespace Datadog.Trace
             var samplingPriority = ParseSamplingPriority(carrier, getter, HttpHeaderNames.SamplingPriority);
             var origin = ParseString(carrier, getter, HttpHeaderNames.Origin);
 
-            return new SpanContext(traceId, parentId, samplingPriority, null, origin);
+            return new SpanContext(traceId, parentId, samplingPriority, serviceName: null, origin);
         }
 
         [Obsolete("This method is deprecated and will be removed. Use ExtractHeaderTags<T>(T, IEnumerable<KeyValuePair<string, string>>, string) instead. " +
@@ -376,7 +375,7 @@ namespace Datadog.Trace
             return null;
         }
 
-        private struct Key : IEquatable<Key>
+        private readonly struct Key : IEquatable<Key>
         {
             public readonly string HeaderName;
             public readonly string TagPrefix;
