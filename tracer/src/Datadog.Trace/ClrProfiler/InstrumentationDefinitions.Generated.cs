@@ -192,6 +192,8 @@ namespace Datadog.Trace.ClrProfiler
                 new("System.Net.Http.WinHttpHandler", "System.Net.Http.WinHttpHandler", "SendAsync",  new[] { "System.Threading.Tasks.Task`1<System.Net.Http.HttpResponseMessage>", "System.Net.Http.HttpRequestMessage", "System.Threading.CancellationToken" }, 4, 0, 0, 5, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Http.HttpClient.WinHttpHandler.WinHttpHandlerIntegration"),
 
                 // ILogger
+                new("Microsoft.Extensions.Logging", "Microsoft.Extensions.Logging.LoggerFactory", ".ctor",  new[] { "System.Void", "System.Collections.Generic.IEnumerable`1[Microsoft.Extensions.Logging.ILoggerProvider]", "Microsoft.Extensions.Options.IOptionsMonitor`1[Microsoft.Extensions.Logging.LoggerFilterOptions]", "Microsoft.Extensions.Options.IOptions`1[Microsoft.Extensions.Logging.LoggerFactoryOptions]" }, 5, 0, 0, 5, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Logging.ILogger.DirectSubmission.LoggerFactoryConstructorIntegration"),
+                new("Microsoft.Extensions.Logging", "Microsoft.Extensions.Logging.LoggerFactory", ".ctor",  new[] { "System.Void", "System.Collections.Generic.IEnumerable`1[Microsoft.Extensions.Logging.ILoggerProvider]", "Microsoft.Extensions.Options.IOptionsMonitor`1[Microsoft.Extensions.Logging.LoggerFilterOptions]" }, 2, 0, 0, 3, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Logging.ILogger.DirectSubmission.LoggerFactoryLegacyConstructorIntegration"),
                 new("Microsoft.Extensions.Logging", "Microsoft.Extensions.Logging.LoggerFactoryScopeProvider", "ForEachScope",  new[] { "System.Void", "System.Action`2[System.Object,!!0]", "!!0" }, 2, 0, 0, 5, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Logging.ILogger.LoggerFactoryScopeProviderForEachScopeIntegration"),
                 new("Microsoft.Extensions.Logging.Abstractions", "Microsoft.Extensions.Logging.LoggerExternalScopeProvider", "ForEachScope",  new[] { "System.Void", "System.Action`2[System.Object,!!0]", "!!0" }, 2, 0, 0, 5, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Logging.ILogger.LoggerExternalScopeProviderForEachScopeIntegration"),
 
@@ -205,6 +207,8 @@ namespace Datadog.Trace.ClrProfiler
                 new("Confluent.Kafka", "Confluent.Kafka.Producer`2+TypedDeliveryHandlerShim_Action", ".ctor",  new[] { "System.Void", "System.String", "!0", "!1", "System.Action`1[Confluent.Kafka.DeliveryReport`2[!0,!1]]" }, 1, 4, 0, 1, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Kafka.KafkaProduceSyncDeliveryHandlerIntegration"),
 
                 // Log4Net
+                new("log4net", "log4net.Appender.AppenderCollection", "ToArray",  new[] { "log4net.Appender.IAppender[]" }, 2, 0, 0, 2, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Logging.Log4Net.DirectSubmission.AppenderCollectionIntegration"),
+                new("log4net", "log4net.Appender.AppenderCollection", "ToArray",  new[] { "log4net.Appender.IAppender[]" }, 1, 0, 0, 1, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Logging.Log4Net.DirectSubmission.AppenderCollectionLegacyIntegration"),
                 new("log4net", "log4net.Util.AppenderAttachedImpl", "AppendLoopOnAppenders",  new[] { "System.Int32", "log4net.Core.LoggingEvent" }, 1, 0, 0, 2, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Log4Net.AppenderAttachedImplIntegration"),
 
                 // MongoDb
@@ -233,6 +237,9 @@ namespace Datadog.Trace.ClrProfiler
                 new("Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter", "Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.UnitTestRunner", "RunCleanup",  new[] { "Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.RunCleanupResult" }, 14, 0, 0, 14, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Testing.MsTestV2.UnitTestRunnerRunCleanupIntegration"),
                 new("Microsoft.VisualStudio.TestPlatform.TestFramework", "Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute", "Execute",  new[] { "Microsoft.VisualStudio.TestTools.UnitTesting.TestResult", "Microsoft.VisualStudio.TestTools.UnitTesting.ITestMethod" }, 14, 0, 0, 14, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Testing.MsTestV2.TestMethodAttributeExecuteIntegration"),
 
+                // NLog
+                new("NLog", "NLog.LogFactory", "GetConfigurationForLogger",  new[] { "System.Void", "System.String", "NLog.Config.LoggingConfiguration" }, 2, 1, 0, 4, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Logging.NLog.DirectSubmission.LogFactoryGetConfigurationForLoggerInstrumentation"),
+
                 // NUnit
                 new("nunit.framework", "NUnit.Framework.Api.NUnitTestAssemblyRunner", "WaitForCompletion",  new[] { "System.Boolean", "System.Int32" }, 3, 0, 0, 3, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Testing.NUnit.NUnitTestAssemblyRunnerWaitForCompletionIntegration"),
                 new("nunit.framework", "NUnit.Framework.Internal.Commands.SkipCommand", "Execute",  new[] { "NUnit.Framework.Internal.TestResult", "NUnit.Framework.Internal.TestExecutionContext" }, 3, 0, 0, 3, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Testing.NUnit.NUnitSkipCommandExecuteIntegration"),
@@ -247,6 +254,9 @@ namespace Datadog.Trace.ClrProfiler
                 new("RabbitMQ.Client", "RabbitMQ.Client.Framing.Impl.Model", "_Private_QueueDeclare",  new[] { "System.Void", "System.String", "System.Boolean", "System.Boolean", "System.Boolean", "System.Boolean", "System.Boolean", "System.Collections.Generic.IDictionary`2[System.String,System.Object]" }, 3, 6, 9, 6, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.RabbitMQ.QueueDeclareIntegration"),
                 new("RabbitMQ.Client", "RabbitMQ.Client.Impl.ModelBase", "BasicGet",  new[] { "RabbitMQ.Client.BasicGetResult", "System.String", "System.Boolean" }, 3, 6, 9, 6, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.RabbitMQ.BasicGetIntegration"),
                 new("RabbitMQ.Client", "RabbitMQ.Client.Impl.ModelBase", "QueueBind",  new[] { "System.Void", "System.String", "System.String", "System.String", "System.Collections.Generic.IDictionary`2[System.String,System.Object]" }, 3, 6, 9, 6, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.RabbitMQ.QueueBindIntegration"),
+
+                // Serilog
+                new("Serilog", "Serilog.LoggerConfiguration", "CreateLogger",  new[] { "Serilog.Core.Logger" }, 1, 0, 0, 2, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Logging.Serilog.LoggerConfigurationInstrumentation"),
 
                 // ServiceStackRedis
                 new("ServiceStack.Redis", "ServiceStack.Redis.RedisNativeClient", "SendReceive",  new[] { "T", "System.Byte[][]", "System.Func`1[!!0]", "System.Action`1[System.Func`1[!!0]]", "System.Boolean" }, 4, 0, 0, 5, 65535, 65535, assemblyFullName, "Datadog.Trace.ClrProfiler.AutoInstrumentation.Redis.ServiceStack.RedisNativeClientSendReceiveIntegration"),
