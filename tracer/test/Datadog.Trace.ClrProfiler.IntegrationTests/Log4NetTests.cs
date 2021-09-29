@@ -4,9 +4,15 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using Datadog.Trace.Configuration;
 using Datadog.Trace.ExtensionMethods;
+using Datadog.Trace.Logging.DirectSubmission;
 using Datadog.Trace.TestHelpers;
+using FluentAssertions;
+using FluentAssertions.Execution;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -51,21 +57,25 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
 
         public static System.Collections.Generic.IEnumerable<object[]> GetTestData()
         {
-            foreach (var item in PackageVersions.log4net)
-            {
-                yield return item.Concat(false);
-                yield return item.Concat(true);
-            }
+            return from item in PackageVersions.log4net
+                   from callTarget in new[] { true, false }
+                   from logShipping in new[] { true, false }
+                   select item.Concat(callTarget, logShipping);
         }
 
         [SkippableTheory]
         [MemberData(nameof(GetTestData))]
         [Trait("Category", "EndToEnd")]
         [Trait("RunOnWindows", "True")]
-        public void InjectsLogsWhenEnabled(string packageVersion, bool enableCallTarget)
+        public void InjectsLogsWhenEnabled(string packageVersion, bool enableCallTarget, bool enableLogShipping)
         {
             SetCallTargetSettings(enableCallTarget);
             SetEnvironmentVariable("DD_LOGS_INJECTION", "true");
+            using var logsIntake = new MockLogsIntake();
+            if (enableLogShipping)
+            {
+                EnableDirectLogSubmission(logsIntake.Port, nameof(IntegrationIds.Log4Net), nameof(InjectsLogsWhenEnabled));
+            }
 
             int agentPort = TcpPortProvider.GetOpenPort();
             using (var agent = new MockTracerAgent(agentPort))
@@ -94,10 +104,15 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
         [MemberData(nameof(GetTestData))]
         [Trait("Category", "EndToEnd")]
         [Trait("RunOnWindows", "True")]
-        public void DoesNotInjectLogsWhenDisabled(string packageVersion, bool enableCallTarget)
+        public void DoesNotInjectLogsWhenDisabled(string packageVersion, bool enableCallTarget, bool enableLogShipping)
         {
             SetCallTargetSettings(enableCallTarget);
             SetEnvironmentVariable("DD_LOGS_INJECTION", "false");
+            using var logsIntake = new MockLogsIntake();
+            if (enableLogShipping)
+            {
+                EnableDirectLogSubmission(logsIntake.Port, nameof(IntegrationIds.Log4Net), nameof(DoesNotInjectLogsWhenDisabled));
+            }
 
             int agentPort = TcpPortProvider.GetOpenPort();
             using (var agent = new MockTracerAgent(agentPort))
@@ -121,5 +136,49 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
 #endif
             }
         }
+
+        [SkippableTheory]
+        [MemberData(nameof(PackageVersions.log4net), MemberType = typeof(PackageVersions))]
+        [Trait("Category", "EndToEnd")]
+        [Trait("RunOnWindows", "True")]
+        public void DirectlyShipsLogs(string packageVersion)
+        {
+            var hostName = "integration_log4net_tests";
+            using var logsIntake = new MockLogsIntake();
+
+            SetEnvironmentVariable("DD_LOGS_INJECTION", "true");
+            EnableDirectLogSubmission(logsIntake.Port, nameof(IntegrationIds.Log4Net), hostName);
+
+            var agentPort = TcpPortProvider.GetOpenPort();
+            using var agent = new MockTracerAgent(agentPort);
+            using var processResult = RunSampleAndWaitForExit(agent.Port, packageVersion: packageVersion);
+
+            Assert.True(processResult.ExitCode >= 0, $"Process exited with code {processResult.ExitCode} and exception: {processResult.StandardError}");
+
+            var logs = logsIntake.Logs;
+
+            using var scope = new AssertionScope();
+            logs.Should().NotBeNull();
+            logs.Should().HaveCountGreaterOrEqualTo(3);
+            logs.Should()
+                .OnlyContain(x => x.Service == "LogsInjection.Log4Net")
+                .And.OnlyContain(x => x.Host == hostName)
+                .And.OnlyContain(x => x.Source == "csharp")
+                .And.OnlyContain(x => x.Exception == null)
+                .And.OnlyContain(x => x.LogLevel == DirectSubmissionLogLevel.Information);
+
+            if (PackageSupportsLogsInjection(packageVersion))
+            {
+                logs
+                   .Where(x => !x.Message.Contains(ExcludeMessagePrefix))
+                   .Should()
+                   .NotBeEmpty()
+                   .And.OnlyContain(x => x.Env == "integration_tests")
+                   .And.OnlyContain(x => x.Version == "1.0.0");
+            }
+        }
+
+        private static bool PackageSupportsLogsInjection(string packageVersion)
+            => string.IsNullOrWhiteSpace(packageVersion) || new Version(packageVersion) >= new Version("2.0.0");
     }
 }
