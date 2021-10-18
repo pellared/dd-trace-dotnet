@@ -5,8 +5,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Datadog.Trace.AppSec.Transports.Http;
+using Datadog.Trace.AppSec.Waf.ReturnTypes.Managed;
 using Datadog.Trace.Vendors.Newtonsoft.Json;
 
 namespace Datadog.Trace.AppSec.EventModel
@@ -19,18 +21,25 @@ namespace Datadog.Trace.AppSec.EventModel
         [JsonProperty("rule")]
         public Rule Rule { get; set; }
 
-        [JsonProperty("rule_match")]
-        public RuleMatch RuleMatch { get; set; }
+        [JsonProperty("rule_matches")]
+        public RuleMatch[] RuleMatches { get; set; }
 
         [JsonProperty("context")]
         public Context Context { get; set; }
 
-        public static Attack From(Waf.ReturnTypes.Managed.Return result, Trace.Span span, Transport.ITransport transport, string customIpHeader, IEnumerable<string> extraHeaders)
+        public static Attack From(ResultData resultData, bool blocked, Trace.Span span, Transport.ITransport transport, string customIpHeader, IEnumerable<string> extraHeaders)
         {
-            var ruleMatch = result.ResultData.Filter[0];
             var request = transport.Request();
-            var headersIpAndPort = RequestHeadersHelper.ExtractHeadersIpAndPort(transport.GetHeader, customIpHeader, extraHeaders,  transport.IsSecureConnection, new IpInfo(request.RemoteIp, request.RemotePort));
+            var headersIpAndPort = RequestHeadersHelper.ExtractHeadersIpAndPort(transport.GetHeader, customIpHeader, extraHeaders, transport.IsSecureConnection, new IpInfo(request.RemoteIp, request.RemotePort));
             request.Headers = headersIpAndPort.HeadersToSend;
+
+            var ruleMatches = resultData.Filter.Select(ruleMatch => new RuleMatch
+            {
+                Operator = ruleMatch.Operator,
+                OperatorValue = ruleMatch.OperatorValue,
+                Highlight = new string[] { ruleMatch.MatchStatus },
+                Parameters = new Parameter[] { new Parameter { Name = ruleMatch.BindingAccessor, Value = ruleMatch.ResolvedValue } }
+            }).ToArray();
 
             var frameworkDescription = FrameworkDescription.Instance;
             var attack = new Attack
@@ -47,7 +56,7 @@ namespace Datadog.Trace.AppSec.EventModel
                     Http = new Http
                     {
                         Request = request,
-                        Response = transport.Response(result.Blocked)
+                        Response = transport.Response(blocked)
                     },
                     Service = new Service { Environment = CorrelationIdentifier.Env },
                     Tracer = new Tracer
@@ -56,17 +65,11 @@ namespace Datadog.Trace.AppSec.EventModel
                         RuntimeVersion = frameworkDescription.ProductVersion,
                     }
                 },
-                Blocked = result.Blocked,
-                Rule = new Rule { Name = result.ResultData.Flow, Id = result.ResultData.Rule },
+                Blocked = blocked,
+                Rule = new Rule { Name = resultData.Flow, Id = resultData.Rule },
                 DetectedAt = DateTime.UtcNow,
-                RuleMatch = new RuleMatch
-                {
-                    Operator = ruleMatch.Operator,
-                    OperatorValue = ruleMatch.OperatorValue,
-                    Highlight = new string[] { ruleMatch.MatchStatus },
-                    Parameters = new Parameter[] { new Parameter { Name = ruleMatch.BindingAccessor, Value = ruleMatch.ResolvedValue } }
-                },
-                Type = result.ResultData.Flow
+                RuleMatches = ruleMatches,
+                Type = resultData.Flow
             };
             if (span != null)
             {

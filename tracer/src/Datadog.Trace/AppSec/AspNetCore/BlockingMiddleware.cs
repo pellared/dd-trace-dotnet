@@ -73,12 +73,6 @@ namespace Datadog.Trace.AppSec.AspNetCore
                 await context.Response.WriteAsync(SecurityConstants.AttackBlockedHtml).ConfigureAwait(true);
             }
 
-            var callbackExists = context.Items.TryGetValue("Security", out var result);
-            if (callbackExists && result is Guid callbackId)
-            {
-                Security.Instance.Execute(callbackId);
-            }
-
             if (blockByThrow)
             {
                 throw new PageBlockedByAppSecException();
