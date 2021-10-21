@@ -274,6 +274,7 @@ namespace Datadog.Trace
         public const string Analytics = "_dd1.sr.eausr";
         public const string AppSecEvent = "appsec.event";
         public const string AppSecJson = "_dd.appsec.json";
+        public const string AspNetAction = "aspnet.action";
         public const string AspNetArea = "aspnet.area";
         public const string AspNetController = "aspnet.controller";
         public const string AspNetCoreAction = "aspnet_core.action";
