@@ -302,6 +302,7 @@ namespace Datadog.Trace
     }
     public static class Tags
     {
+        public const string ActorIp = "actor.ip";
         public const string AmqpCommand = "amqp.command";
         public const string AmqpDeliveryMode = "amqp.delivery_mode";
         public const string AmqpExchange = "amqp.exchange";
@@ -309,6 +310,7 @@ namespace Datadog.Trace
         public const string AmqpRoutingKey = "amqp.routing_key";
         public const string Analytics = "_dd1.sr.eausr";
         public const string AppSecEvent = "appsec.event";
+        public const string AppSecJson = "_dd.appsec.json";
         public const string AspNetAction = "aspnet.action";
         public const string AspNetArea = "aspnet.area";
         public const string AspNetController = "aspnet.controller";
