@@ -37,6 +37,6 @@ namespace Datadog.Trace.Configuration
         ILogger,
         Aerospike,
         AzureFunctions,
-        Couchbase
+        Couchbase,
     }
 }
