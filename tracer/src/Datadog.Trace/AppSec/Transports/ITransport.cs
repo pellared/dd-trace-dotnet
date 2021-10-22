@@ -23,8 +23,6 @@ namespace Datadog.Trace.AppSec.Transport
 
         void SetAdditiveContext(IContext additiveContext);
 
-        void OnCompleted(Action completedCallback);
-
         Request Request();
     }
 }
