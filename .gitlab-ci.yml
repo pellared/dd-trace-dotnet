@@ -3,7 +3,7 @@ stages:
   - binary_build
   
 variables:
-  DATADOG_AGENT_WINBUILDIMAGES: v5782992-59363bf
+  DATADOG_AGENT_WINBUILDIMAGES: v5832590-acd11a1
     
 driver_build:
   only:
