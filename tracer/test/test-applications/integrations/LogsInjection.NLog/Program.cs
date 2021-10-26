@@ -22,6 +22,7 @@ namespace LogsInjection.NLog
             // adding error logs which in turn cause a failure in CI.
             // Disabling the startup log at the process level should prevent this.
             Environment.SetEnvironmentVariable("DD_TRACE_STARTUP_LOGS", "0");
+            System.Diagnostics.Debugger.Launch();
 
             var env = SampleHelpers.GetDatadogEnvironmentVariables();
             foreach(var kvp in env)

@@ -23,6 +23,8 @@ namespace Datadog.Trace.Tests.Logging.DirectSubmission
                 intakeUrl: "https://localhost:1234",
                 apiKey: "abcdef",
                 serviceName: "MyTestService",
+                env: "integration_tests",
+                serviceVersion: "1.0.0",
                 minimumLevel: DirectSubmissionLogLevel.Debug,
                 globalTags: new Dictionary<string, string>(),
                 enabledLogShippingIntegrations: DirectLogSubmissionSettings.SupportedIntegrations.Select(x => x.ToString()).ToList(),

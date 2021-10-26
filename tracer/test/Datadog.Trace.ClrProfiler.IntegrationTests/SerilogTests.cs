@@ -153,6 +153,8 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
             logs.Should().HaveCountGreaterOrEqualTo(3);
             logs.Should()
                 .OnlyContain(x => x.Service == "LogsInjection.Serilog")
+                .And.OnlyContain(x => x.Env == "integration_tests")
+                .And.OnlyContain(x => x.Version == "1.0.0")
                 .And.OnlyContain(x => x.Host == hostName)
                 .And.OnlyContain(x => x.Source == "csharp")
                 .And.OnlyContain(x => x.Exception == null)
@@ -164,8 +166,8 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                    .Where(x => !x.Message.Contains(ExcludeMessagePrefix))
                    .Should()
                    .NotBeEmpty()
-                   .And.OnlyContain(x => x.Env == "integration_tests")
-                   .And.OnlyContain(x => x.Version == "1.0.0");
+                   .And.OnlyContain(x => !string.IsNullOrEmpty(x.TraceId))
+                   .And.OnlyContain(x => !string.IsNullOrEmpty(x.SpanId));
             }
         }
 

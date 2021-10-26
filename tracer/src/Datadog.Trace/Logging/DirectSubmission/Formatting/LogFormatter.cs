@@ -17,18 +17,24 @@ namespace Datadog.Trace.Logging.DirectSubmission.Formatting
         private const string ServicePropertyName = "ddservice";
         private const string HostPropertyName = "host";
         private const string TagsPropertyName = "ddtags";
+        private const string EnvPropertyName = "dd_env";
+        private const string VersionPropertyName = "dd_version";
 
         private readonly string _source;
         private readonly string _service;
         private readonly string _host;
         private readonly string _globalTags;
+        private readonly string _env;
+        private readonly string _version;
 
         public LogFormatter(DirectLogSubmissionSettings settings)
         {
-            _source = settings.Source;
-            _service = settings.Service;
-            _host = settings.Host;
-            _globalTags = settings.GlobalTags;
+            _source = string.IsNullOrEmpty(settings.Source) ? null : settings.Source;
+            _service = string.IsNullOrEmpty(settings.Service) ? null : settings.Service;
+            _host = string.IsNullOrEmpty(settings.Host) ? null : settings.Host;
+            _globalTags = string.IsNullOrEmpty(settings.GlobalTags) ? null : settings.GlobalTags;
+            _env = string.IsNullOrEmpty(settings.Env) ? null : settings.Env;
+            _version = string.IsNullOrEmpty(settings.ServiceVersion) ? null : settings.ServiceVersion;
         }
 
         internal static bool IsSourceProperty(string propertyName) =>
@@ -36,13 +42,22 @@ namespace Datadog.Trace.Logging.DirectSubmission.Formatting
 
         internal static bool IsServiceProperty(string propertyName) =>
             string.Equals(propertyName, ServicePropertyName, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(propertyName, "dd_service", StringComparison.OrdinalIgnoreCase);
+         || string.Equals(propertyName, "dd_service", StringComparison.OrdinalIgnoreCase)
+         || string.Equals(propertyName, "dd.service", StringComparison.OrdinalIgnoreCase);
 
         internal static bool IsHostProperty(string propertyName) =>
             string.Equals(propertyName, HostPropertyName, StringComparison.OrdinalIgnoreCase);
 
         internal static bool IsTagsProperty(string propertyName) =>
             string.Equals(propertyName, TagsPropertyName, StringComparison.OrdinalIgnoreCase);
+
+        internal static bool IsEnvProperty(string propertyName) =>
+            string.Equals(propertyName, EnvPropertyName, StringComparison.OrdinalIgnoreCase)
+         || string.Equals(propertyName, "dd.env", StringComparison.OrdinalIgnoreCase);
+
+        internal static bool IsVersionProperty(string propertyName) =>
+            string.Equals(propertyName, VersionPropertyName, StringComparison.OrdinalIgnoreCase)
+         || string.Equals(propertyName, "dd.version", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Helper for writing property names in JSON
@@ -182,6 +197,18 @@ namespace Datadog.Trace.Logging.DirectSubmission.Formatting
             {
                 writer.WritePropertyName(ServicePropertyName, escape: false);
                 writer.WriteValue(_service);
+            }
+
+            if (_env is not null && !renderingDetails.HasRenderedEnv)
+            {
+                writer.WritePropertyName(EnvPropertyName, escape: false);
+                writer.WriteValue(_env);
+            }
+
+            if (_version is not null && !renderingDetails.HasRenderedVersion)
+            {
+                writer.WritePropertyName(VersionPropertyName, escape: false);
+                writer.WriteValue(_version);
             }
 
             if (_host is not null && !renderingDetails.HasRenderedSource)

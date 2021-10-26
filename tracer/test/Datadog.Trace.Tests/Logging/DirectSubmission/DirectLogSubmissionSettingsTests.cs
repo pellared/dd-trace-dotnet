@@ -164,6 +164,8 @@ namespace Datadog.Trace.Tests.Logging.DirectSubmission
 
             IConfigurationSource source = new NameValueConfigurationSource(collection);
             var tracerSettings = new TracerSettings(source);
+            tracerSettings.Environment = "integration_tests";
+            tracerSettings.ServiceVersion = "1.0.0";
 
             var logSettings = DirectLogSubmissionSettings.Create(tracerSettings, apiKey, serviceName);
 
@@ -179,6 +181,8 @@ namespace Datadog.Trace.Tests.Logging.DirectSubmission
             logSettings.Source.Should().Be("csharp");
             logSettings.ValidationErrors.Should().BeEmpty();
             logSettings.EnabledIntegrationNames.Should().Equal(enabledIntegrations);
+            logSettings.Env.Should().Be(tracerSettings.Environment);
+            logSettings.ServiceVersion.Should().Be(tracerSettings.ServiceVersion);
         }
     }
 }

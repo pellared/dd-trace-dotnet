@@ -35,6 +35,8 @@ namespace Datadog.Trace.Logging.DirectSubmission
             string apiKey,
             bool isEnabled,
             string service,
+            string env,
+            string serviceVersion,
             DirectSubmissionLogLevel minimumLevel,
             bool[] enabledIntegrations,
             List<string> validationErrors,
@@ -49,6 +51,8 @@ namespace Datadog.Trace.Logging.DirectSubmission
             EnabledIntegrationNames = enabledIntegrationNames;
             MinimumLevel = minimumLevel;
             Service = service;
+            Env = env;
+            ServiceVersion = serviceVersion;
             Transport = transport;
             _enabledIntegrations = enabledIntegrations;
             IsEnabled = isEnabled;
@@ -65,6 +69,10 @@ namespace Datadog.Trace.Logging.DirectSubmission
         public string Source { get; }
 
         public string Service { get; }
+
+        public string Env { get; }
+
+        public string ServiceVersion { get; }
 
         public string GlobalTags { get; }
 
@@ -84,6 +92,8 @@ namespace Datadog.Trace.Logging.DirectSubmission
                 intakeUrl: settings.DirectLogSubmissionUrl,
                 apiKey: apiKey,
                 serviceName: serviceName,
+                env: settings.Environment,
+                serviceVersion: settings.ServiceVersion,
                 minimumLevel: settings.DirectLogSubmissionMinimumLevel,
                 globalTags: settings.DirectLogSubmissionGlobalTags,
                 enabledLogShippingIntegrations: settings.DirectLogSubmissionEnabledIntegrations,
@@ -97,6 +107,8 @@ namespace Datadog.Trace.Logging.DirectSubmission
             string intakeUrl,
             string apiKey,
             string serviceName,
+            string env,
+            string serviceVersion,
             DirectSubmissionLogLevel minimumLevel,
             IDictionary<string, string> globalTags,
             ICollection<string> enabledLogShippingIntegrations,
@@ -192,6 +204,8 @@ namespace Datadog.Trace.Logging.DirectSubmission
                 apiKey: apiKey,
                 isEnabled: isEnabled,
                 service: serviceName,
+                env: env,
+                serviceVersion: serviceVersion,
                 minimumLevel: minimumLevel,
                 enabledIntegrations: enabledIntegrations,
                 validationErrors,
@@ -229,6 +243,8 @@ namespace Datadog.Trace.Logging.DirectSubmission
                 apiKey: null,
                 isEnabled: false,
                 service: string.Empty,
+                env: null,
+                serviceVersion: null,
                 minimumLevel: DirectSubmissionLogLevel.Fatal,
                 enabledIntegrations: null,
                 validationErrors: emptyList,
