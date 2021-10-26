@@ -43,6 +43,24 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 {
                     FileName = "log-jsonFile.log",
                     RegexFormat = @"""{0}"": {1}",
+                    UnTracedLogTypes = UnTracedLogTypes.EmptyProperties,
+                    PropertiesUseSerilogNaming = false
+                }
+            };
+
+        private readonly LogFileTest[] _nlogPost40LogFileTests =
+            {
+                new LogFileTest()
+                {
+                    FileName = "log-textFile.log",
+                    RegexFormat = @"{0}: {1}",
+                    UnTracedLogTypes = UnTracedLogTypes.EmptyProperties,
+                    PropertiesUseSerilogNaming = false
+                },
+                new LogFileTest()
+                {
+                    FileName = "log-jsonFile.log",
+                    RegexFormat = @"""{0}"": {1}",
                     UnTracedLogTypes = UnTracedLogTypes.None,
                     PropertiesUseSerilogNaming = false
                 }
@@ -83,14 +101,8 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 var spans = agent.WaitForSpans(1, 2500);
                 Assert.True(spans.Count >= 1, $"Expecting at least 1 span, only received {spans.Count}");
 
-                if (string.IsNullOrWhiteSpace(packageVersion) || new Version(packageVersion) >= new Version("4.0.0"))
-                {
-                    ValidateLogCorrelation(spans, _nlog40LogFileTests, packageVersion);
-                }
-                else
-                {
-                    ValidateLogCorrelation(spans, _nlogPre40LogFileTests, packageVersion);
-                }
+                var testFiles = GetTestFiles(packageVersion);
+                ValidateLogCorrelation(spans, testFiles, packageVersion);
             }
         }
 
@@ -114,14 +126,8 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 var spans = agent.WaitForSpans(1, 2500);
                 Assert.True(spans.Count >= 1, $"Expecting at least 1 span, only received {spans.Count}");
 
-                if (string.IsNullOrWhiteSpace(packageVersion) || new Version(packageVersion) >= new Version("4.0.0"))
-                {
-                    ValidateLogCorrelation(spans, _nlog40LogFileTests, packageVersion, disableLogCorrelation: true);
-                }
-                else
-                {
-                    ValidateLogCorrelation(spans, _nlogPre40LogFileTests, packageVersion, disableLogCorrelation: true);
-                }
+                var testFiles = GetTestFiles(packageVersion);
+                ValidateLogCorrelation(spans, testFiles, packageVersion, disableLogCorrelation: true);
             }
         }
 
@@ -162,5 +168,13 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                .And.OnlyContain(x => x.Env == "integration_tests")
                .And.OnlyContain(x => x.Version == "1.0.0");
         }
+
+        private LogFileTest[] GetTestFiles(string packageVersion)
+            => packageVersion switch
+            {
+                null or "" => _nlogPre40LogFileTests,
+                _ when new Version(packageVersion) >= new Version("4.1.0") => _nlogPost40LogFileTests,
+                _ => _nlog40LogFileTests,
+            };
     }
 }
