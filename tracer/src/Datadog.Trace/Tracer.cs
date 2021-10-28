@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -69,7 +70,7 @@ namespace Datadog.Trace
         /// Initializes a new instance of the <see cref="Tracer"/> class with default settings.
         /// </summary>
         public Tracer()
-            : this(settings: null, agentWriter: null, sampler: null, scopeManager: null, statsd: null)
+            : this(settings: (ImmutableTracerSettings)null, agentWriter: null, sampler: null, scopeManager: null, statsd: null)
         {
         }
 
@@ -82,17 +83,34 @@ namespace Datadog.Trace
         /// or null to use the default configuration sources.
         /// </param>
         public Tracer(TracerSettings settings)
+            : this(settings?.Build(), agentWriter: null, sampler: null, scopeManager: null, statsd: null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Tracer"/>
+        /// class using the specified <see cref="IConfigurationSource"/>.
+        /// </summary>
+        /// <param name="settings">
+        /// A <see cref="ImmutableTracerSettings"/> instance with the desired settings,
+        /// or null to use the default configuration sources.
+        /// </param>
+        public Tracer(ImmutableTracerSettings settings)
             : this(settings, agentWriter: null, sampler: null, scopeManager: null, statsd: null)
         {
         }
 
         internal Tracer(TracerSettings settings, IAgentWriter agentWriter, ISampler sampler, IScopeManager scopeManager, IDogStatsd statsd)
+            : this(settings?.Build(), agentWriter, sampler, scopeManager, statsd)
+        {
+        }
+
+        internal Tracer(ImmutableTracerSettings settings, IAgentWriter agentWriter, ISampler sampler, IScopeManager scopeManager, IDogStatsd statsd)
         {
             // update the count of Tracer instances
             Interlocked.Increment(ref _liveTracerCount);
 
-            Settings = settings ?? TracerSettings.FromDefaultSources();
-            Settings.Freeze();
+            Settings = settings ?? ImmutableTracerSettings.FromDefaultSources();
 
             // if not configured, try to determine an appropriate service name
             DefaultServiceName = Settings.ServiceName ??
@@ -215,7 +233,7 @@ namespace Datadog.Trace
         /// <summary>
         /// Gets this tracer's settings.
         /// </summary>
-        public TracerSettings Settings { get; }
+        public ImmutableTracerSettings Settings { get; }
 
         /// <summary>
         /// Gets or sets the detected version of the agent
@@ -267,20 +285,29 @@ namespace Datadog.Trace
         {
             // Keep supporting this older public method by creating a TracerConfiguration
             // from default sources, overwriting the specified settings, and passing that to the constructor.
-            var configuration = TracerSettings.FromDefaultSources();
+            var configurationSource = GlobalSettings.CreateDefaultConfigurationSource();
             GlobalSettings.SetDebugEnabled(isDebugEnabled);
 
-            if (agentEndpoint != null)
+            if (agentEndpoint is not null || defaultServiceName is not null)
             {
-                configuration.AgentUri = agentEndpoint;
+                var values = new NameValueCollection(2);
+
+                if (agentEndpoint != null)
+                {
+                    values.Add(ConfigurationKeys.AgentUri, agentEndpoint.ToString());
+                }
+
+                if (defaultServiceName != null)
+                {
+                    values.Add(ConfigurationKeys.ServiceName, defaultServiceName);
+                }
+
+                configurationSource.Add(new NameValueConfigurationSource(values));
             }
 
-            if (defaultServiceName != null)
-            {
-                configuration.ServiceName = defaultServiceName;
-            }
+            var settings = new ImmutableTracerSettings(configurationSource);
 
-            return new Tracer(configuration);
+            return new Tracer(settings);
         }
 
         /// <summary>
@@ -681,7 +708,7 @@ namespace Datadog.Trace
             return false;
         }
 
-        private static IDogStatsd CreateDogStatsdClient(TracerSettings settings, string serviceName, int port)
+        private static IDogStatsd CreateDogStatsdClient(ImmutableTracerSettings settings, string serviceName, int port)
         {
             try
             {

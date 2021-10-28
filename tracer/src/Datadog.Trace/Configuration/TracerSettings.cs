@@ -509,6 +509,15 @@ namespace Datadog.Trace.Configuration
         }
 
         /// <summary>
+        /// Create an instance of <see cref="ImmutableTracerSettings"/> that
+        /// </summary>
+        /// <returns>The <see cref="ImmutableTracerSettings"/> that can be passed to a <see cref="Tracer"/> instance</returns>
+        public ImmutableTracerSettings Build()
+        {
+            return new ImmutableTracerSettings(this);
+        }
+
+        /// <summary>
         /// Populate the internal structures. Modifying the settings past this point is not supported
         /// </summary>
         internal void Freeze()
@@ -516,59 +525,7 @@ namespace Datadog.Trace.Configuration
             Integrations.SetDisabledIntegrations(DisabledIntegrationNames);
         }
 
-        internal bool IsErrorStatusCode(int statusCode, bool serverStatusCode)
-        {
-            var source = serverStatusCode ? HttpServerErrorStatusCodes : HttpClientErrorStatusCodes;
-
-            if (source == null)
-            {
-                return false;
-            }
-
-            if (statusCode >= source.Length)
-            {
-                return false;
-            }
-
-            return source[statusCode];
-        }
-
-        internal bool IsIntegrationEnabled(IntegrationInfo integration, bool defaultValue = true)
-        {
-            if (TraceEnabled && !DomainMetadata.ShouldAvoidAppDomain())
-            {
-                return Integrations[integration].Enabled ?? defaultValue;
-            }
-
-            return false;
-        }
-
-        internal bool IsIntegrationEnabled(string integrationName)
-        {
-            if (TraceEnabled && !DomainMetadata.ShouldAvoidAppDomain())
-            {
-                bool? enabled = Integrations[integrationName].Enabled;
-                return enabled != false;
-            }
-
-            return false;
-        }
-
-        internal double? GetIntegrationAnalyticsSampleRate(IntegrationInfo integration, bool enabledWithGlobalSetting)
-        {
-            var integrationSettings = Integrations[integration];
-            var analyticsEnabled = integrationSettings.AnalyticsEnabled ?? (enabledWithGlobalSetting && AnalyticsEnabled);
-            return analyticsEnabled ? integrationSettings.AnalyticsSampleRate : (double?)null;
-        }
-
-        internal bool IsNetStandardFeatureFlagEnabled()
-        {
-            var value = EnvironmentHelpers.GetEnvironmentVariable(ConfigurationKeys.FeatureFlags.NetStandardEnabled, string.Empty);
-
-            return value == "1" || value == "true";
-        }
-
-        internal IDictionary<string, string> InitializeHeaderTags(IDictionary<string, string> configurationDictionary)
+        private static IDictionary<string, string> InitializeHeaderTags(IDictionary<string, string> configurationDictionary)
         {
             var headerTags = new Dictionary<string, string>();
 
@@ -587,7 +544,8 @@ namespace Datadog.Trace.Configuration
             return headerTags;
         }
 
-        internal IEnumerable<string> TrimSplitString(string textValues, char separator)
+        // internal for testing
+        internal static IEnumerable<string> TrimSplitString(string textValues, char separator)
         {
             var values = textValues.Split(separator);
 
@@ -600,7 +558,8 @@ namespace Datadog.Trace.Configuration
             }
         }
 
-        internal bool[] ParseHttpCodesToArray(string httpStatusErrorCodes)
+        // internal for testing
+        internal static bool[] ParseHttpCodesToArray(string httpStatusErrorCodes)
         {
             bool[] httpErrorCodesArray = new bool[600];
 
@@ -650,11 +609,6 @@ namespace Datadog.Trace.Configuration
             }
 
             return httpErrorCodesArray;
-        }
-
-        internal string GetServiceName(Tracer tracer, string serviceName)
-        {
-            return ServiceNameMappings.GetServiceName(tracer.DefaultServiceName, serviceName);
         }
     }
 }

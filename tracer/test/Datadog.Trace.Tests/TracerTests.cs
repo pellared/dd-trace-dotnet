@@ -392,13 +392,17 @@ namespace Datadog.Trace.Tests
         [InlineData("", false, false)] // Version check fail, partial flush disabled
         public void LogPartialFlushWarning(string agentVersion, bool partialFlushEnabled, bool expectedResult)
         {
-            _tracer.Settings.PartialFlushEnabled = partialFlushEnabled;
+            var settings = new TracerSettings { PartialFlushEnabled = partialFlushEnabled };
+            var writerMock = new Mock<IAgentWriter>();
+            var samplerMock = new Mock<ISampler>();
+
+            var tracer = new Tracer(settings, writerMock.Object, samplerMock.Object, scopeManager: null, statsd: null);
 
             // First call depends on the parameters of the test
-            _tracer.ShouldLogPartialFlushWarning(agentVersion).Should().Be(expectedResult);
+            tracer.ShouldLogPartialFlushWarning(agentVersion).Should().Be(expectedResult);
 
             // Second call should always be false
-            _tracer.ShouldLogPartialFlushWarning(agentVersion).Should().BeFalse();
+            tracer.ShouldLogPartialFlushWarning(agentVersion).Should().BeFalse();
         }
 
         [Fact]

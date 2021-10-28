@@ -52,8 +52,7 @@ namespace Datadog.Trace.Ci
 
             // Initialize Tracer
             Log.Information("Initialize Test Tracer instance");
-            tracerSettings.Freeze();
-            Tracer.Instance = new CITracer(tracerSettings);
+            Tracer.Instance = new CITracer(tracerSettings.Build());
         }
 
         internal static void FlushSpans()
