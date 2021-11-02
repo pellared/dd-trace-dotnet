@@ -479,19 +479,33 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 new object[] { "3.7.0.18" },
                 new object[] { "3.7.1.18" },
                 new object[] { "3.7.0.19" },
+                new object[] { "3.7.1.19" },
                 new object[] { "3.7.0.20" },
+                new object[] { "3.7.1.20" },
                 new object[] { "3.7.0.21" },
+                new object[] { "3.7.1.21" },
                 new object[] { "3.7.0.22" },
+                new object[] { "3.7.1.22" },
                 new object[] { "3.7.0.23" },
+                new object[] { "3.7.1.23" },
                 new object[] { "3.7.0.24" },
+                new object[] { "3.7.1.24" },
                 new object[] { "3.7.0.25" },
+                new object[] { "3.7.1.25" },
                 new object[] { "3.7.0.26" },
+                new object[] { "3.7.1.26" },
                 new object[] { "3.7.0.27" },
+                new object[] { "3.7.1.27" },
                 new object[] { "3.7.0.28" },
+                new object[] { "3.7.1.28" },
                 new object[] { "3.7.0.29" },
+                new object[] { "3.7.1.29" },
                 new object[] { "3.7.0.30" },
+                new object[] { "3.7.1.30" },
                 new object[] { "3.7.0.31" },
+                new object[] { "3.7.1.31" },
                 new object[] { "3.7.0.32" },
+                new object[] { "3.7.1.32" },
                 new object[] { "3.7.0.33" },
                 new object[] { "3.7.0.34" },
                 new object[] { "3.7.0.35" },
@@ -578,6 +592,7 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 new object[] { "2.12.4" },
                 new object[] { "2.13.0" },
                 new object[] { "2.13.1" },
+                new object[] { "2.13.2" },
 #endif
             };
 
@@ -623,6 +638,8 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 new object[] { "7.14.0" },
                 new object[] { "7.14.1" },
                 new object[] { "7.15.0" },
+                new object[] { "7.15.1" },
+                new object[] { "7.15.2" },
 #endif
             };
 
@@ -974,6 +991,7 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 new object[] { "8.0.24" },
                 new object[] { "8.0.25" },
                 new object[] { "8.0.26" },
+                new object[] { "8.0.27" },
 #endif
             };
 
@@ -1022,6 +1040,7 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 new object[] { "3.1.17" },
                 new object[] { "3.1.18" },
                 new object[] { "3.1.19" },
+                new object[] { "3.1.20" },
                 new object[] { "5.0.0" },
                 new object[] { "5.0.1" },
                 new object[] { "5.0.2" },
@@ -1033,6 +1052,7 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 new object[] { "5.0.8" },
                 new object[] { "5.0.9" },
                 new object[] { "5.0.10" },
+                new object[] { "5.0.11" },
 #endif
             };
 
@@ -1125,6 +1145,7 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 new object[] { "1.7.0" },
                 new object[] { "1.8.0" },
                 new object[] { "1.8.1" },
+                new object[] { "1.8.2" },
 #endif
             };
 
@@ -1159,6 +1180,8 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 new object[] { "3.20.0" },
                 new object[] { "3.20.1" },
                 new object[] { "3.21.0" },
+                new object[] { "3.22.0" },
+                new object[] { "3.22.1" },
 #endif
             };
 
@@ -1391,6 +1414,7 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 new object[] { "4.7.9" },
                 new object[] { "4.7.10" },
                 new object[] { "4.7.11" },
+                new object[] { "4.7.12" },
 #endif
             };
 
@@ -1418,6 +1442,7 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 new object[] { "2.0.10" },
                 new object[] { "2.0.11" },
                 new object[] { "2.0.12" },
+                new object[] { "2.0.13" },
 #endif
             };
 
@@ -1445,6 +1470,115 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
                 new object[] { "4.2.1" },
                 new object[] { "4.2.2" },
                 new object[] { "4.2.3" },
+                new object[] { "4.2.4" },
+#endif
+            };
+
+        public static IEnumerable<object[]> Couchbase =>
+
+            new List<object[]>
+            {
+#if DEFAULT_SAMPLES
+                new object[] { string.Empty },
+#else
+#if NETFRAMEWORK
+#endif
+                new object[] { "2.2.8" },
+                new object[] { "2.3.0" },
+                new object[] { "2.3.1" },
+                new object[] { "2.3.3" },
+                new object[] { "2.3.4" },
+                new object[] { "2.3.5" },
+                new object[] { "2.3.6" },
+                new object[] { "2.3.7" },
+                new object[] { "2.3.8" },
+                new object[] { "2.3.9" },
+                new object[] { "2.3.10" },
+                new object[] { "2.3.11" },
+                new object[] { "2.4.0" },
+                new object[] { "2.4.1" },
+                new object[] { "2.4.2" },
+                new object[] { "2.4.3" },
+                new object[] { "2.4.4" },
+                new object[] { "2.4.5" },
+                new object[] { "2.4.6" },
+                new object[] { "2.4.7" },
+                new object[] { "2.4.8" },
+                new object[] { "2.5.0" },
+                new object[] { "2.5.1" },
+                new object[] { "2.5.2" },
+                new object[] { "2.5.3" },
+                new object[] { "2.5.4" },
+                new object[] { "2.5.5" },
+                new object[] { "2.5.6" },
+                new object[] { "2.5.7" },
+                new object[] { "2.5.8" },
+                new object[] { "2.5.9" },
+                new object[] { "2.5.10" },
+                new object[] { "2.5.11" },
+                new object[] { "2.5.12" },
+                new object[] { "2.6.0" },
+                new object[] { "2.6.1" },
+                new object[] { "2.6.2" },
+                new object[] { "2.7.0" },
+                new object[] { "2.7.1" },
+                new object[] { "2.7.2" },
+                new object[] { "2.7.3" },
+                new object[] { "2.7.4" },
+                new object[] { "2.7.5" },
+                new object[] { "2.7.6" },
+                new object[] { "2.7.7" },
+                new object[] { "2.7.8" },
+                new object[] { "2.7.9" },
+                new object[] { "2.7.10" },
+                new object[] { "2.7.11" },
+                new object[] { "2.7.12" },
+                new object[] { "2.7.13" },
+                new object[] { "2.7.14" },
+                new object[] { "2.7.15" },
+                new object[] { "2.7.16" },
+                new object[] { "2.7.17" },
+                new object[] { "2.7.18" },
+                new object[] { "2.7.19" },
+                new object[] { "2.7.20" },
+                new object[] { "2.7.21" },
+                new object[] { "2.7.22" },
+                new object[] { "2.7.23" },
+                new object[] { "2.7.24" },
+                new object[] { "2.7.25" },
+                new object[] { "2.7.26" },
+#endif
+            };
+
+        public static IEnumerable<object[]> Couchbase3 =>
+
+            new List<object[]>
+            {
+#if DEFAULT_SAMPLES
+                new object[] { string.Empty },
+#else
+#if NETFRAMEWORK
+#endif
+                new object[] { "3.0.0" },
+                new object[] { "3.0.1" },
+                new object[] { "3.0.2" },
+                new object[] { "3.0.3" },
+                new object[] { "3.0.4" },
+                new object[] { "3.0.5" },
+                new object[] { "3.0.6" },
+                new object[] { "3.0.7" },
+                new object[] { "3.1.0" },
+                new object[] { "3.1.1" },
+                new object[] { "3.1.2" },
+                new object[] { "3.1.3" },
+                new object[] { "3.1.4" },
+                new object[] { "3.1.5" },
+                new object[] { "3.1.6" },
+                new object[] { "3.1.7" },
+                new object[] { "3.2.0" },
+                new object[] { "3.2.1" },
+                new object[] { "3.2.2" },
+                new object[] { "3.2.3" },
 #endif
             };
 
