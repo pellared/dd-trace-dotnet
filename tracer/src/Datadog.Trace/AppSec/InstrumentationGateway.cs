@@ -5,11 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+using Datadog.Trace.AppSec.Transports.Http;
 #if NETFRAMEWORK
 using System.Web;
 using System.Web.Routing;
 #endif
-using Datadog.Trace.AppSec.Transport.Http;
 using Datadog.Trace.Logging;
 using Datadog.Trace.Util.Http;
 using Datadog.Trace.Vendors.Serilog.Events;

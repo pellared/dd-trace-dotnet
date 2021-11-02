@@ -4,25 +4,23 @@
 // </copyright>
 
 using System;
-using Datadog.Trace.AppSec.EventModel;
+using Datadog.Trace.AppSec.Transports.Http;
 using Datadog.Trace.AppSec.Waf;
 
-namespace Datadog.Trace.AppSec.Transport
+namespace Datadog.Trace.AppSec.Transports
 {
     internal interface ITransport
     {
+        IpInfo PeerAddressInfo { get; }
+
         bool IsSecureConnection { get; }
 
         Func<string, string> GetHeader { get; }
-
-        Response Response(bool blocked);
 
         void Block();
 
         IContext GetAdditiveContext();
 
         void SetAdditiveContext(IContext additiveContext);
-
-        Request Request();
     }
 }

@@ -43,35 +43,6 @@ namespace Datadog.Trace.Agent.Transports
             _headers.Add(name, value);
         }
 
-        public async Task<IApiResponse> PostAsJsonAsync(IEvent events, JsonSerializer serializer)
-        {
-            var memoryStream = new MemoryStream();
-            var sw = new StreamWriter(memoryStream);
-            using (JsonWriter writer = new JsonTextWriter(sw))
-            {
-                serializer.Serialize(writer, events);
-                await writer.FlushAsync().ConfigureAwait(false);
-                await memoryStream.FlushAsync().ConfigureAwait(false);
-                memoryStream.Seek(0, SeekOrigin.Begin);
-                var buffer = memoryStream.GetBuffer();
-                _headers.Add("Content-Type", "application/json");
-                var result = await PostSegmentAsync(new ArraySegment<byte>(buffer, 0, (int)memoryStream.Length)).ConfigureAwait(false);
-                var response = result.Item1;
-                var request = result.Item2;
-                if (response.StatusCode != 200 && response.StatusCode != 202)
-                {
-                    memoryStream.Seek(0, SeekOrigin.Begin);
-                    using var sr = new StreamReader(memoryStream);
-                    var headers = string.Join(", ", request.Headers.Select(h => $"{h.Name}: {h.Value}"));
-                    var payload = await sr.ReadToEndAsync().ConfigureAwait(false);
-
-                    Log.Warning("AppSec event not correctly sent to backend {statusCode} by class {className} with response {responseText}, request headers: were {headers}, payload was: {payload}", new object[] { response.StatusCode, nameof(HttpStreamRequest), await response.ReadAsStringAsync().ConfigureAwait(false), headers, payload });
-                }
-
-                return response;
-            }
-        }
-
         public async Task<IApiResponse> PostAsync(ArraySegment<byte> traces) => (await PostSegmentAsync(traces).ConfigureAwait(false)).Item1;
 
         private async Task<Tuple<IApiResponse, HttpRequest>> PostSegmentAsync(ArraySegment<byte> segment)

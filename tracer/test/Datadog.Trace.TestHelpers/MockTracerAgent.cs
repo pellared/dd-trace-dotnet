@@ -208,8 +208,6 @@ namespace Datadog.Trace.TestHelpers
             RequestDeserialized?.Invoke(this, new EventArgs<IList<IList<Span>>>(traces));
         }
 
-        private bool IsAppSecTrace(HttpListenerContext context) => context.Request.Headers[AppSec.Transports.Sender.AppSecHeaderKey] != null;
-
         private void AssertHeader(
             NameValueCollection headers,
             string headerKey,
@@ -255,7 +253,7 @@ namespace Datadog.Trace.TestHelpers
                 {
                     var ctx = _listener.GetContext();
                     OnRequestReceived(ctx);
-                    var shouldDeserializeTraces = ShouldDeserializeTraces && !IsAppSecTrace(ctx);
+                    var shouldDeserializeTraces = ShouldDeserializeTraces;
                     if (shouldDeserializeTraces)
                     {
                         var spans = MessagePackSerializer.Deserialize<IList<IList<Span>>>(ctx.Request.InputStream);

@@ -5,49 +5,26 @@
 
 #if !NETFRAMEWORK
 using System;
-using System.Threading.Tasks;
-using Datadog.Trace.AppSec.EventModel;
 using Datadog.Trace.AppSec.Waf;
-using Datadog.Trace.Util.Http;
 using Microsoft.AspNetCore.Http;
 
-namespace Datadog.Trace.AppSec.Transport.Http
+namespace Datadog.Trace.AppSec.Transports.Http
 {
     internal class HttpTransport : ITransport
     {
         private readonly HttpContext context;
 
-        public HttpTransport(HttpContext context) => this.context = context;
+        public HttpTransport(HttpContext context)
+        {
+            this.context = context;
+            PeerAddressInfo = new IpInfo(context.Connection.RemoteIpAddress.ToString(), context.Connection.RemotePort);
+        }
+
+        public IpInfo PeerAddressInfo { get; }
 
         public bool IsSecureConnection => context.Request.IsHttps;
 
         public Func<string, string> GetHeader => key => context.Request.Headers[key];
-
-        public Request Request()
-        {
-            var request = new Request
-            {
-                Method = context.Request.Method,
-                Path = context.Request.Path,
-                Scheme = context.Request.Scheme,
-                Url = context.Request.GetUrl()
-            };
-
-            if (context.Request.Host.HasValue)
-            {
-                request.Host = context.Request.Host.ToString();
-                request.RemoteIp = context.Connection.RemoteIpAddress.ToString();
-                request.Port = context.Connection.RemotePort;
-            }
-
-            return request;
-        }
-
-        public Response Response(bool blocked) => new Response
-        {
-            Status = context.Response.StatusCode,
-            Blocked = blocked
-        };
 
         public void Block()
         {

@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using Datadog.Trace.AppSec.Transport;
+using Datadog.Trace.AppSec.Transports;
 
 namespace Datadog.Trace.AppSec
 {

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Datadog.Trace.AppSec.EventModel;
-using Datadog.Trace.AppSec.Transport;
+using Datadog.Trace.AppSec.Transports;
 using Datadog.Trace.AppSec.Transports.Http;
 using Datadog.Trace.AppSec.Waf;
 using Datadog.Trace.AppSec.Waf.ReturnTypes.Managed;
@@ -121,36 +121,12 @@ namespace Datadog.Trace.AppSec
             }
         }
 
-        private static Attack[] CreateAttachArray(ITransport transport, Span span, ResultData[] results, bool blocked)
-        {
-            var attacks = new Attack[results.Length];
-            for (var i = 0; i < results.Length; i++)
-            {
-                var result = results[i];
-                if (Log.IsEnabled(LogEventLevel.Debug))
-                {
-                    if (blocked)
-                    {
-                        Log.Debug("Blocking current transaction (rule: {RuleId})", result.Rule);
-                    }
-                    else
-                    {
-                        Log.Debug("Detecting an attack from rule {RuleId}", result.Rule);
-                    }
-                }
-
-                attacks[i] = Attack.From(result, blocked, span, transport);
-            }
-
-            return attacks;
-        }
-
         /// <summary>
-        /// Frees resouces
+        /// Frees resources
         /// </summary>
         public void Dispose() => _waf?.Dispose();
 
-        private void Report(ITransport transport, Span span, ResultData[] results, bool blocked)
+        private void Report(ITransport transport, Span span, WafMatch[] results, bool blocked)
         {
             if (span != null)
             {
@@ -158,20 +134,35 @@ namespace Datadog.Trace.AppSec
                 span.SetTraceSamplingPriority(SamplingPriority.AppSecKeep);
             }
 
-            var attacks = CreateAttachArray(transport, span, results, blocked);
+            if (Log.IsEnabled(LogEventLevel.Debug))
+            {
+                var length = results.Length;
+                for (var i = 0; i < length; i++)
+                {
+                    var res = results[i];
+                    Log.Debug(
+                        blocked
+                            ? "Blocking current transaction (rule: {RuleId})"
+                            : "Detecting an attack from rule {RuleId}",
+                        res.Rule);
+                }
+            }
 
-            var json = JsonConvert.SerializeObject(new AppSecJson { Triggers = attacks });
+            var json = JsonConvert.SerializeObject(
+                new AppSecJson
+                {
+                    Triggers = results
+                });
             span.SetTag(Tags.AppSecJson, json);
 
-            var request = transport.Request();
-            var ipInfo = RequestHeadersHelper.ExtractIpAndPort(transport.GetHeader, _settings.CustomIpHeader, _settings.ExtraHeaders, transport.IsSecureConnection, new IpInfo(request.RemoteIp, request.RemotePort));
+            var ipInfo = RequestHeadersHelper.ExtractIpAndPort(transport.GetHeader, _settings.CustomIpHeader, transport.IsSecureConnection, transport.PeerAddressInfo);
             span.SetTag(Tags.ActorIp, ipInfo.IpAddress);
         }
 
         private Span GetLocalRootSpan(Span span)
         {
             var localRootSpan = span.Context.TraceContext?.RootSpan;
-            return (localRootSpan == null) ? span : localRootSpan;
+            return localRootSpan ?? span;
         }
 
         private void RunWafAndReact(IDictionary<string, object> args, ITransport transport, Span span)
@@ -198,7 +189,7 @@ namespace Datadog.Trace.AppSec
                     transport.Block();
                 }
 
-                var resultData = JsonConvert.DeserializeObject<ResultData[]>(wafResult.Data);
+                var resultData = JsonConvert.DeserializeObject<WafMatch[]>(wafResult.Data);
                 Report(transport, span, resultData, block);
             }
         }
@@ -219,14 +210,24 @@ namespace Datadog.Trace.AppSec
         {
             var frameworkDescription = FrameworkDescription.Instance;
             var osSupported = false;
-            var supportedOs = new[] { OSPlatform.Linux, OSPlatform.MacOS, OSPlatform.Windows };
+            var supportedOs = new[]
+            {
+                OSPlatform.Linux,
+                OSPlatform.MacOS,
+                OSPlatform.Windows
+            };
             if (supportedOs.Contains(frameworkDescription.OSPlatform))
             {
                 osSupported = true;
             }
 
             var archSupported = false;
-            var supportedArchs = new[] { ProcessArchitecture.Arm, ProcessArchitecture.X64, ProcessArchitecture.X86 };
+            var supportedArchs = new[]
+            {
+                ProcessArchitecture.Arm,
+                ProcessArchitecture.X64,
+                ProcessArchitecture.X86
+            };
             if (supportedArchs.Contains(frameworkDescription.ProcessArchitecture))
             {
                 archSupported = true;

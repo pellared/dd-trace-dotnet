@@ -10,8 +10,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Web;
 using System.Web.Routing;
-using Datadog.Trace.AppSec;
-using Datadog.Trace.AppSec.Transport.Http;
 using Datadog.Trace.AspNet;
 using Datadog.Trace.ClrProfiler.Emit;
 using Datadog.Trace.ClrProfiler.Integrations.AspNet;

@@ -38,7 +38,10 @@ partial class Build : NukeBuild
 
     [Parameter("Should all versions of integration NuGet packages be tested")]
     readonly bool TestAllPackageVersions;
-
+    
+    [Parameter("The Unit test name to execute, can contain wildcards")]
+    readonly string UnitTestsProjectName;
+    
     [Parameter("Should minor versions of integration NuGet packages be included")]
     readonly bool IncludeMinorPackageVersions;
 
