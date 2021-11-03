@@ -451,7 +451,5 @@ namespace Datadog.Trace
         internal const string CouchbaseOperationCode = "couchbase.operation.code";
         internal const string CouchbaseOperationBucket = "couchbase.operation.bucket";
         internal const string CouchbaseOperationKey = "couchbase.operation.key";
-        internal const string CouchbaseOperationHost = "couchbase.operation.host";
-        internal const string CouchbaseOperationPort = "couchbase.operation.port";
     }
 }
