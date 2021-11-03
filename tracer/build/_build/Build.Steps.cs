@@ -687,7 +687,7 @@ partial class Build
         .Unlisted()
         .After(Restore)
         .After(CompileManagedSrc)
-        .After(CopyLibDdwafForAppSecUnitTests)
+        .DependsOn(CopyLibDdwafForAppSecUnitTests)
         .Executes(() =>
         {
             // Always AnyCPU
