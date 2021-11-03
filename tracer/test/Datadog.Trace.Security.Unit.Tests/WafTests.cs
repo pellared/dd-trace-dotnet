@@ -13,6 +13,7 @@ using Datadog.Trace.AppSec.Waf.ReturnTypes.Managed;
 using Datadog.Trace.Configuration;
 using Datadog.Trace.Vendors.Newtonsoft.Json;
 using Datadog.Trace.Vendors.Serilog;
+using FluentAssertions;
 using Xunit;
 
 namespace Datadog.Trace.Security.Unit.Tests
@@ -95,10 +96,7 @@ namespace Datadog.Trace.Security.Unit.Tests
 
         [Theory]
         [InlineData("/.adsensepostnottherenonobook", "security_scanner", "crs-913-120")]
-        public void BodyAttack(string body, string flow, string rule)
-        {
-            Execute(AddressesConstants.RequestBody, body, flow, rule);
-        }
+        public void BodyAttack(string body, string flow, string rule) => Execute(AddressesConstants.RequestBody, body, flow, rule);
 
         private static void Execute(string address, object value, string flow, string rule)
         {
@@ -120,14 +118,14 @@ namespace Datadog.Trace.Security.Unit.Tests
             }
 
             using var waf = Waf.Initialize(FileName);
-            Assert.NotNull(waf);
+            waf.Should().NotBeNull();
             using var context = waf.CreateContext();
             var result = context.Run(args);
-            Assert.Equal(ReturnCode.Monitor, result.ReturnCode);
+            result.ReturnCode.Should().Be(ReturnCode.Monitor);
             var resultData = JsonConvert.DeserializeObject<WafMatch[]>(result.Data).FirstOrDefault();
-            Assert.Equal(flow, resultData.Rule.Tags.Type);
-            Assert.Equal(rule, resultData.Rule.Id);
-            Assert.Equal(address, resultData.RuleMatches[0].Parameters[0].Address);
+            resultData.Rule.Tags.Type.Should().Be(flow);
+            resultData.Rule.Id.Should().Be(rule);
+            resultData.RuleMatches[0].Parameters[0].Address.Should().Be(address);
         }
     }
 }
