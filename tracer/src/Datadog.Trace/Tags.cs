@@ -425,11 +425,6 @@ namespace Datadog.Trace
         public const string CosmosDbContainer = "cosmosdb.container";
 
         /// <summary>
-        /// Whether the libraries application security features are enabled.
-        /// </summary>
-        public const string AppSecEnabled = "_dd.appsec.enabled";
-
-        /// <summary>
         /// If a span was involved with an application security event
         /// </summary>
         public const string AppSecEvent = "appsec.event";
@@ -447,6 +442,8 @@ namespace Datadog.Trace
         internal const string AerospikeNamespace = "aerospike.namespace";
 
         internal const string AerospikeSetName = "aerospike.setname";
+
+        internal const string AerospikeUserKey = "aerospike.userkey";
 
         internal const string CouchbaseOperationCode = "couchbase.operation.code";
         internal const string CouchbaseOperationBucket = "couchbase.operation.bucket";

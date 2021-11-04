@@ -33,6 +33,8 @@ partial class Build
 {
     [Solution("Datadog.Trace.sln")] readonly Solution Solution;
     AbsolutePath TracerDirectory => RootDirectory / "tracer";
+    AbsolutePath SharedDirectory => RootDirectory / "shared";
+    AbsolutePath ProfilerDirectory => ProfilerSrcDirectory ?? RootDirectory / ".." / "dd-continuous-profiler-dotnet";
     AbsolutePath MsBuildProject => TracerDirectory / "Datadog.Trace.proj";
 
     AbsolutePath OutputDirectory => TracerDirectory / "bin";
@@ -43,6 +45,10 @@ partial class Build
     AbsolutePath WindowsTracerHomeZip => ArtifactsDirectory / "windows-tracer-home.zip";
     AbsolutePath WindowsSymbolsZip => ArtifactsDirectory / "windows-native-symbols.zip";
     AbsolutePath BuildDataDirectory => TracerDirectory / "build_data";
+
+    AbsolutePath MonitoringHomeDirectory => MonitoringHome ?? (SharedDirectory / "bin" / "monitoring-home");
+
+    AbsolutePath ProfilerHomeDirectory => ProfilerHome ?? RootDirectory / ".." / "_build" / "DDProf-Deploy";
 
     const string LibDdwafVersion = "1.0.10";
     AbsolutePath LibDdwafDirectory => (NugetPackageDirectory ?? (RootDirectory / "packages")) / $"libddwaf.{LibDdwafVersion}";
@@ -59,6 +65,7 @@ partial class Build
         : "/var/log/datadog/dotnet/";
 
     Project NativeProfilerProject => Solution.GetProject(Projects.ClrProfilerNative);
+    Project NativeLoaderProject => Solution.GetProject(Projects.NativeLoader);
 
     [LazyPathExecutable(name: "cmake")] readonly Lazy<Tool> CMake;
     [LazyPathExecutable(name: "make")] readonly Lazy<Tool> Make;
@@ -150,6 +157,7 @@ partial class Build
                     : new[] { MSBuildTargetPlatform.x86 };
 
             // Can't use dotnet msbuild, as needs to use the VS version of MSBuild
+            // Build native tracer assets
             MSBuild(s => s
                 .SetTargetPath(MsBuildProject)
                 .SetConfiguration(BuildConfiguration)
@@ -356,6 +364,7 @@ partial class Build
         {
             foreach (var architecture in ArchitecturesForPlatform)
             {
+                // Copy native tracer assets
                 var source = NativeProfilerProject.Directory / "bin" / BuildConfiguration / architecture.ToString() /
                              $"{NativeProfilerProject.Name}.dll";
                 var dest = TracerHomeDirectory / $"win-{architecture}";
@@ -459,6 +468,30 @@ partial class Build
                     .AddProperty("RunWixToolsOutOfProc", true)
                     .SetProperty("TracerHomeDirectory", TracerHomeDirectory)
                     .SetProperty("LibDdwafDirectory", LibDdwafDirectory)
+                    .SetMaxCpuCount(null)
+                    .CombineWith(ArchitecturesForPlatform, (o, arch) => o
+                        .SetProperty("MsiOutputPath", ArtifactsDirectory / arch.ToString())
+                        .SetTargetPlatform(arch)),
+                degreeOfParallelism: 2);
+        });
+
+    Target BuildMsiBeta => _ => _
+        .Unlisted()
+        .Description("Builds the .msi files from the repo")
+        .After(BuildTracerHome, BuildProfilerHome, BuildMonitoringHome)
+        .OnlyWhenStatic(() => IsWin)
+        .Executes(() =>
+        {
+            MSBuild(s => s
+                    .SetTargetPath(SharedDirectory / "src" / "msi-installer" / "WindowsInstaller.wixproj")
+                    .SetConfiguration(BuildConfiguration)
+                    .SetMSBuildPath()
+                    .AddProperty("RunWixToolsOutOfProc", true)
+                    .SetProperty("TracerHomeDirectory", TracerHomeDirectory)
+                    .SetProperty("LibDdwafDirectory", LibDdwafDirectory)
+                    .SetProperty("ProfilerHomeDirectory", ProfilerHomeDirectory)
+                    .SetProperty("MonitoringHomeDirectory", MonitoringHomeDirectory)
+                    .SetProperty("BetaMsiSuffix", BetaMsiSuffix)
                     .SetMaxCpuCount(null)
                     .CombineWith(ArchitecturesForPlatform, (o, arch) => o
                         .SetProperty("MsiOutputPath", ArtifactsDirectory / arch.ToString())
@@ -892,6 +925,7 @@ partial class Build
                     .SetConfiguration(BuildConfiguration)
                     .SetTargetPlatform(TargetPlatform)
                     .SetFramework(Framework)
+                    //.WithMemoryDumpAfter(timeoutInMinutes: 30)
                     .EnableNoRestore()
                     .EnableNoBuild()
                     .SetProcessEnvironmentVariable("TracerHomeDirectory", TracerHomeDirectory)
@@ -909,6 +943,7 @@ partial class Build
                     .SetConfiguration(BuildConfiguration)
                     .SetTargetPlatform(TargetPlatform)
                     .SetFramework(Framework)
+                    //.WithMemoryDumpAfter(timeoutInMinutes: 30)
                     .EnableNoRestore()
                     .EnableNoBuild()
                     .SetFilter(Filter ?? "RunOnWindows=True&LoadFromGAC!=True&IIS!=True")
@@ -921,6 +956,7 @@ partial class Build
             finally
             {
                 MoveLogsToBuildData();
+                CopyMemoryDumps();
             }
         });
 
@@ -1068,6 +1104,7 @@ partial class Build
                         "Samples.GraphQL4" => Framework == TargetFramework.NETCOREAPP3_1 || Framework == TargetFramework.NET5_0,
                         var name when projectsToSkip.Contains(name) => false,
                         var name when multiPackageProjects.Contains(name) => false,
+                        "Samples.AspNetCoreRazorPages" => true,
                         _ when !string.IsNullOrWhiteSpace(SampleName) => project?.Name?.Contains(SampleName) ?? false,
                         _ => true,
                     };
@@ -1084,6 +1121,7 @@ partial class Build
                     // .SetTargetPlatform(Platform)
                     .SetNoWarnDotNetCore3()
                     .When(TestAllPackageVersions, o => o.SetProperty("TestAllPackageVersions", "true"))
+                    .When(IncludeMinorPackageVersions, o => o.SetProperty("IncludeMinorPackageVersions", "true"))
                     .When(!string.IsNullOrEmpty(NugetPackageDirectory), o => o.SetPackageDirectory(NugetPackageDirectory))
                     .CombineWith(projectsToBuild, (c, project) => c
                         .SetProjectFile(project)));
@@ -1098,6 +1136,7 @@ partial class Build
                     // .SetTargetPlatform(Platform)
                     .SetNoWarnDotNetCore3()
                     .When(TestAllPackageVersions, o => o.SetProperty("TestAllPackageVersions", "true"))
+                    .When(IncludeMinorPackageVersions, o => o.SetProperty("IncludeMinorPackageVersions", "true"))
                     .When(!string.IsNullOrEmpty(NugetPackageDirectory), o => o.SetPackageDirectory(NugetPackageDirectory))
                     .CombineWith(projectsToBuild, (c, project) => c
                         .SetProject(project)));
@@ -1128,6 +1167,7 @@ partial class Build
                 .SetProperty("BuildInParallel", "true")
                 .SetProcessArgumentConfigurator(arg => arg.Add("/nowarn:NU1701"))
                 .When(TestAllPackageVersions, o => o.SetProperty("TestAllPackageVersions", "true"))
+                .When(IncludeMinorPackageVersions, o => o.SetProperty("IncludeMinorPackageVersions", "true"))
                 .CombineWith(targets, (c, target) => c.SetTargets(target))
             );
         });
@@ -1154,6 +1194,7 @@ partial class Build
                     // .SetTargetPlatform(Platform)
                     .SetNoWarnDotNetCore3()
                     .When(TestAllPackageVersions, o => o.SetProperty("TestAllPackageVersions", "true"))
+                    .When(IncludeMinorPackageVersions, o => o.SetProperty("IncludeMinorPackageVersions", "true"))
                     .When(!string.IsNullOrEmpty(NugetPackageDirectory), o =>
                         o.SetPackageDirectory(NugetPackageDirectory))
                     .CombineWith(integrationTestProjects, (c, project) => c
@@ -1191,9 +1232,11 @@ partial class Build
                         .EnableNoRestore()
                         .EnableNoBuild()
                         .SetFramework(Framework)
+                        //.WithMemoryDumpAfter(timeoutInMinutes: 30)
                         .SetFilter(filter)
                         .SetProcessEnvironmentVariable("TracerHomeDirectory", TracerHomeDirectory)
                         .When(TestAllPackageVersions, o => o.SetProcessEnvironmentVariable("TestAllPackageVersions", "true"))
+                        .When(IncludeMinorPackageVersions, o => o.SetProperty("IncludeMinorPackageVersions", "true"))
                         .When(CodeCoverage, ConfigureCodeCoverage)
                         .CombineWith(ParallelIntegrationTests, (s, project) => s
                             .EnableTrxLogOutput(GetResultsDirectory(project))
@@ -1207,9 +1250,11 @@ partial class Build
                     .EnableNoRestore()
                     .EnableNoBuild()
                     .SetFramework(Framework)
+                    //.WithMemoryDumpAfter(timeoutInMinutes: 30)
                     .SetFilter(filter)
                     .SetProcessEnvironmentVariable("TracerHomeDirectory", TracerHomeDirectory)
                     .When(TestAllPackageVersions, o => o.SetProcessEnvironmentVariable("TestAllPackageVersions", "true"))
+                    .When(IncludeMinorPackageVersions, o => o.SetProperty("IncludeMinorPackageVersions", "true"))
                     .When(CodeCoverage, ConfigureCodeCoverage)
                     .CombineWith(ClrProfilerIntegrationTests, (s, project) => s
                         .EnableTrxLogOutput(GetResultsDirectory(project))
@@ -1219,6 +1264,7 @@ partial class Build
             finally
             {
                 MoveLogsToBuildData();
+                CopyMemoryDumps();
             }
         });
 
@@ -1448,6 +1494,14 @@ partial class Build
             {
                 MoveFileToDirectory(dump, BuildDataDirectory / "dumps", FileExistsPolicy.Overwrite);
             }
+        }
+    }
+
+    private void CopyMemoryDumps()
+    {
+        foreach (var file in Directory.EnumerateFiles(TracerDirectory, "*.dmp", SearchOption.AllDirectories))
+        {
+            CopyFileToDirectory(file, BuildDataDirectory, FileExistsPolicy.OverwriteIfNewer);
         }
     }
 
