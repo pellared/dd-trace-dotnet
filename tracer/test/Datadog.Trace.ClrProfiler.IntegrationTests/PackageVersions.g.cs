@@ -69,9 +69,9 @@ namespace Datadog.Trace.ClrProfiler.IntegrationTests
 
         public static IEnumerable<object[]> Aerospike => IsAllMinorPackageVersions ? PackageVersionsLatestMinors.Aerospike : PackageVersionsLatestMajors.Aerospike;
 
-        public static IEnumerable<object[]> Couchbase => IsAllMinorPackageVersions ? PackageVersionsComprehensive.Couchbase : PackageVersionsLatestMinors.Couchbase;
+        public static IEnumerable<object[]> Couchbase => IsAllMinorPackageVersions ? PackageVersionsLatestMinors.Couchbase : PackageVersionsLatestMinors.Couchbase;
 
-        public static IEnumerable<object[]> Couchbase3 => IsAllMinorPackageVersions ? PackageVersionsComprehensive.Couchbase3 : PackageVersionsLatestMinors.Couchbase3;
+        public static IEnumerable<object[]> Couchbase3 => IsAllMinorPackageVersions ? PackageVersionsLatestMinors.Couchbase3 : PackageVersionsLatestMinors.Couchbase3;
 
         public static IEnumerable<object[]> log4net => IsAllMinorPackageVersions ? PackageVersionsLatestMinors.log4net : PackageVersionsLatestMajors.log4net;
 
