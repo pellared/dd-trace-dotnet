@@ -440,10 +440,9 @@ namespace Datadog.Trace.DiagnosticListeners
         private static Span StartMvcCoreSpan(Tracer tracer, Span parentSpan, BeforeActionStruct typedArg, HttpContext httpContext, HttpRequest request)
         {
             // Create a child span for the MVC action
-            var mvcSpanTags = new AspNetCoreEndpointTags();
-            var mvcScope = tracer.StartActiveWithTags(MvcOperationName, parentSpan.Context, tags: mvcSpanTags);
-            var span = mvcScope.Span;
-            span.Type = SpanTypes.Web;
+            // var mvcScope = tracer.StartActiveWithTags(MvcOperationName, parentSpan.Context, tags: mvcSpanTags);
+            // var span = mvcScope.Span;
+            // span.Type = SpanTypes.Web;
 
             var trackingFeature = httpContext.Features.Get<AspNetCoreHttpRequestHandler.RequestTrackingFeature>();
             var isUsingEndpointRouting = trackingFeature.IsUsingEndpointRouting;
@@ -519,13 +518,16 @@ namespace Datadog.Trace.DiagnosticListeners
             }
 
             // mirror the parent if we couldn't extract a route
-            span.ResourceName = resourceName ?? parentSpan.ResourceName;
+            // span.ResourceName = resourceName ?? parentSpan.ResourceName;
 
-            mvcSpanTags.AspNetCoreAction = actionName;
-            mvcSpanTags.AspNetCoreController = controllerName;
-            mvcSpanTags.AspNetCoreArea = areaName;
-            mvcSpanTags.AspNetCorePage = pagePath;
-            mvcSpanTags.AspNetCoreRoute = aspNetRoute;
+            if (parentSpan.Tags is AspNetCoreEndpointTags mvcSpanTags)
+            {
+                mvcSpanTags.AspNetCoreAction = actionName;
+                mvcSpanTags.AspNetCoreController = controllerName;
+                mvcSpanTags.AspNetCoreArea = areaName;
+                mvcSpanTags.AspNetCorePage = pagePath;
+                mvcSpanTags.AspNetCoreRoute = aspNetRoute;
+            }
 
             if (!isUsingEndpointRouting && isFirstExecution)
             {
@@ -536,10 +538,10 @@ namespace Datadog.Trace.DiagnosticListeners
                     parentTags.AspNetCoreRoute = aspNetRoute;
                 }
 
-                parentSpan.ResourceName = span.ResourceName;
+                parentSpan.ResourceName = resourceName ?? parentSpan.ResourceName;
             }
 
-            return span;
+            return parentSpan;
         }
 
         private void OnHostingHttpRequestInStart(object arg)
