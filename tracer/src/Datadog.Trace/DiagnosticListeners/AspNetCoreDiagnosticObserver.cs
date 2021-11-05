@@ -524,9 +524,9 @@ namespace Datadog.Trace.DiagnosticListeners
             {
                 mvcSpanTags.AspNetCoreAction = actionName;
                 mvcSpanTags.AspNetCoreController = controllerName;
-                mvcSpanTags.AspNetCoreArea = areaName;
-                mvcSpanTags.AspNetCorePage = pagePath;
-                mvcSpanTags.AspNetCoreRoute = aspNetRoute;
+                // mvcSpanTags.AspNetCoreArea = areaName;
+                // mvcSpanTags.AspNetCorePage = pagePath;
+                // mvcSpanTags.AspNetCoreRoute = aspNetRoute;
             }
 
             if (!isUsingEndpointRouting && isFirstExecution)
