@@ -671,14 +671,14 @@ namespace Datadog.Trace.DiagnosticListeners
                                       ? raw as string
                                       : null;
 
-                var resourcePathName = SimplifyRoutePattern(
-                    routePattern,
-                    routeValues,
-                    areaName: areaName,
-                    controllerName: controllerName,
-                    actionName: actionName);
+                // var resourcePathName = SimplifyRoutePattern(
+                //     routePattern,
+                //     routeValues,
+                //     areaName: areaName,
+                //     controllerName: controllerName,
+                //     actionName: actionName);
 
-                var resourceName = $"{trackingFeature.HttpMethod} {request.PathBase}{resourcePathName}";
+                var resourceName = $"{trackingFeature.HttpMethod} {request.PathBase}{controllerName}/{actionName}";
 
                 // NOTE: We could set the controller/action/area tags on the parent span
                 // But instead we re-extract them in the MVC endpoint as these are MVC
