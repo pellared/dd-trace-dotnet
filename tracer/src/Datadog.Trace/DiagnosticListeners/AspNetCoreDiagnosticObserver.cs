@@ -274,7 +274,7 @@ namespace Datadog.Trace.DiagnosticListeners
         }
 #endif
 
-        private static string SimplifyRoutePattern(
+        internal static string SimplifyRoutePattern(
             RoutePattern routePattern,
             RouteValueDictionary routeValueDictionary,
             string areaName,
@@ -351,7 +351,81 @@ namespace Datadog.Trace.DiagnosticListeners
             return string.IsNullOrEmpty(simplifiedRoute) ? "/" : simplifiedRoute.ToLowerInvariant();
         }
 
-        private static string SimplifyRoutePattern(
+        internal static string SimplifyRoutePatternTryDuckCast(
+            RoutePattern routePattern,
+            RouteValueDictionary routeValueDictionary,
+            string areaName,
+            string controllerName,
+            string actionName)
+        {
+            var maxSize = routePattern.RawText.Length
+                        + (string.IsNullOrEmpty(areaName) ? 0 : Math.Max(areaName.Length - 4, 0)) // "area".Length
+                        + (string.IsNullOrEmpty(controllerName) ? 0 : Math.Max(controllerName.Length - 10, 0)) // "controller".Length
+                        + (string.IsNullOrEmpty(actionName) ? 0 : Math.Max(actionName.Length - 6, 0)) // "action".Length
+                        + 1; // '/' prefix
+
+            var sb = StringBuilderCache.Acquire(maxSize);
+
+            foreach (var pathSegment in routePattern.PathSegments)
+            {
+                foreach (var part in pathSegment.DuckCast<RoutePatternPathSegmentStruct>().Parts)
+                {
+                    if (part.TryDuckCast(out RoutePatternContentPartStruct contentPart))
+                    {
+                        sb.Append('/');
+                        sb.Append(contentPart.Content);
+                    }
+                    else if (part.TryDuckCast(out RoutePatternParameterPartStruct parameter))
+                    {
+                        var parameterName = parameter.Name;
+                        if (parameterName.Equals("area", StringComparison.OrdinalIgnoreCase))
+                        {
+                            sb.Append('/');
+                            sb.Append(areaName);
+                        }
+                        else if (parameterName.Equals("controller", StringComparison.OrdinalIgnoreCase))
+                        {
+                            sb.Append('/');
+                            sb.Append(controllerName);
+                        }
+                        else if (parameterName.Equals("action", StringComparison.OrdinalIgnoreCase))
+                        {
+                            sb.Append('/');
+                            sb.Append(actionName);
+                        }
+                        else if (!parameter.IsOptional || routeValueDictionary.ContainsKey(parameterName))
+                        {
+                            sb.Append("/{");
+                            if (parameter.IsCatchAll)
+                            {
+                                if (parameter.EncodeSlashes)
+                                {
+                                    sb.Append("**");
+                                }
+                                else
+                                {
+                                    sb.Append('*');
+                                }
+                            }
+
+                            sb.Append(parameterName);
+                            if (parameter.IsOptional)
+                            {
+                                sb.Append('?');
+                            }
+
+                            sb.Append('}');
+                        }
+                    }
+                }
+            }
+
+            var simplifiedRoute = StringBuilderCache.GetStringAndRelease(sb);
+
+            return string.IsNullOrEmpty(simplifiedRoute) ? "/" : simplifiedRoute.ToLowerInvariant();
+        }
+
+        internal static string SimplifyRoutePattern(
             RouteTemplate routePattern,
             IDictionary<string, string> routeValueDictionary,
             string areaName,
