@@ -85,7 +85,7 @@ namespace Datadog.Trace.PlatformHelpers
         private Scope StartCoreScope(Tracer tracer, HttpContext httpContext, HttpRequest request)
         {
             string host = request.Host.Value;
-            string httpMethod = request.Method?.ToUpperInvariant() ?? "UNKNOWN";
+            string httpMethod = HttpRequestUtils.GetCanonicalizedMethod(request.Method);
             string url = request.GetUrl();
 
             string absolutePath = request.Path.Value;

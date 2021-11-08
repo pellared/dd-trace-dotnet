@@ -421,7 +421,7 @@ namespace Datadog.Trace.DiagnosticListeners
             ActionDescriptor actionDescriptor = typedArg.ActionDescriptor;
             HttpRequest request = typedArg.HttpContext.Request;
 
-            string httpMethod = request.Method?.ToUpperInvariant() ?? "UNKNOWN";
+            string httpMethod = HttpRequestUtils.GetCanonicalizedMethod(request.Method);
             string routeTemplate = actionDescriptor.AttributeRouteInfo?.Template;
             if (routeTemplate is null)
             {

@@ -27,6 +27,14 @@ namespace Datadog.Trace.Util.Http
                     });
         }
 
+        internal static string GetCanonicalizedMethod(string method) => method switch
+        {
+            "GET" or "POST" or "PUT" or "DELETE" => method,
+            "OPTIONS" or "HEAD" or "PATCH" or "TRACE" or "CONNECT" => method,
+            null => "UNKNOWN",
+            _ => method.ToUpperInvariant()
+        };
+
         private static object ConvertRouteValueList(List<RouteData> routeDataList)
         {
             return routeDataList.Select(x => ConvertRouteValueDictionary(x.Values)).ToList();
