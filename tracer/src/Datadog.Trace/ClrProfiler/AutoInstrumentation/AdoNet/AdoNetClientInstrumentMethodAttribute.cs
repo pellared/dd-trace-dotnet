@@ -4,6 +4,7 @@
 // </copyright>
 
 using System;
+using Datadog.Trace.Configuration;
 
 namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.AdoNet
 {
@@ -17,10 +18,7 @@ namespace Datadog.Trace.ClrProfiler.AutoInstrumentation.AdoNet
             TypeName = AdoNetClientData.SqlCommandType;
             MinimumVersion = AdoNetClientData.MinimumVersion;
             MaximumVersion = AdoNetClientData.MaximumVersion;
-
-            // Not used for ADO.NET integration.
-            // Integration name is determined by type of DbCommand in ScopeDBFactory
-            IntegrationName = null;
+            IntegrationName = AdoNetClientData.IntegrationName;
         }
 
         protected IAdoNetClientData AdoNetClientData { get; }
